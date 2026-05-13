@@ -1,4 +1,18 @@
 package project_biu.servlets;
 
-public class ConfLoader {
+import project_biu.server.RequestParser;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+public class ConfLoader implements Servlet {
+    @Override
+    public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
+
+    }
+
+    @Override
+    public void close() throws IOException {
+
+    }
 }

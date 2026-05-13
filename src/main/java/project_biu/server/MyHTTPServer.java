@@ -1,6 +1,5 @@
 package project_biu.server;
 
-
 import project_biu.servlets.Servlet;
 
 import java.io.BufferedReader;
@@ -58,7 +57,8 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 } catch (SocketTimeoutException _) {
                     // Expected every 1 second
                 } catch (IOException e) {
-                    if (!stop) System.out.println(e.getMessage());
+                    if (!stop)
+                        System.out.println(e.getMessage());
                 }
             }
         } catch (IOException e) {
@@ -84,9 +84,10 @@ public class MyHTTPServer extends Thread implements HTTPServer {
 
     private void handleClient(Socket client) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-             OutputStream out = client.getOutputStream()) {
+                OutputStream out = client.getOutputStream()) {
             final RequestParser.RequestInfo info = RequestParser.parseRequest(in);
-            if (info == null) return;
+            if (info == null)
+                return;
             findBestMatchingServlet(info.httpCommand(), info.uri()).ifPresent(bestMatchingServlet -> {
                 try {
                     bestMatchingServlet.handle(info, out);
