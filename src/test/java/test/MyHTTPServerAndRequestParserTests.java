@@ -7,11 +7,7 @@ import project_biu.server.MyHTTPServer;
 import project_biu.server.RequestParser;
 import project_biu.servlets.Servlet;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -20,21 +16,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class MyHTTPServerAndRequestParserTests {
 
     @Test
     void parseRequest_withQueryMetadataAndBody_extractsAllFields() throws IOException {
-        String request = "GET /api/sum?a=2&b=5 HTTP/1.1\n"
-                + "Host: localhost\n"
-                + "\n"
-                + "filename=result.txt\n"
-                + "\n"
-                + "payload-line\n"
-                + "\n";
+        final String request = "GET /api/sum?a=2&b=5 HTTP/1.1\nHost: localhost\n\nfilename=result.txt\n\npayload-line\n\n";
 
         BufferedReader input = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8))));
@@ -55,10 +43,7 @@ class MyHTTPServerAndRequestParserTests {
 
     @Test
     void parseRequest_withoutQuery_keepsUriAndSegments() throws IOException {
-        String request = "GET /publish HTTP/1.1\n"
-                + "Host: localhost\n"
-                + "\n"
-                + "\n";
+        final String request = "GET /publish HTTP/1.1\nHost: localhost\n\n\n";
 
         BufferedReader input = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8))));
@@ -72,12 +57,7 @@ class MyHTTPServerAndRequestParserTests {
 
     @Test
     void parseRequest_withoutQuery_withMetadata_shouldStillParseParameters() throws IOException {
-        String request = "GET /publish HTTP/1.1\n"
-                + "Host: localhost\n"
-                + "\n"
-                + "x=7\n"
-                + "\n"
-                + "\n";
+        final String request = "GET /publish HTTP/1.1\nHost: localhost\n\nx=7\n\n\n";
 
         BufferedReader input = new BufferedReader(
                 new InputStreamReader(new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8))));
@@ -99,10 +79,7 @@ class MyHTTPServerAndRequestParserTests {
         int afterStartCount = countServerRunThreads();
         assertEquals(beforeCount + 1, afterStartCount, "start() should add exactly one server thread");
 
-        String request = "GET /publish?a=10&b=4 HTTP/1.1\r\n"
-                + "Host: localhost\r\n"
-                + "\r\n"
-                + "\r\n";
+        final String request = "GET /publish?a=10&b=4 HTTP/1.1\r\nHost: localhost\r\n\\r\n\\r\n";
 
         String response;
         try (Socket client = new Socket("localhost", port)) {
@@ -171,16 +148,10 @@ class MyHTTPServerAndRequestParserTests {
         Thread.sleep(200);
 
         String getResponse = sendRawRequest(port,
-                "GET /publish HTTP/1.1\r\n" +
-                        "Host: localhost\r\n" +
-                        "\r\n" +
-                        "\r\n");
+                "GET /publish HTTP/1.1\r\nHost: localhost\r\n\r\n\r\n");
 
         String postResponse = sendRawRequest(port,
-                "POST /publish HTTP/1.1\r\n" +
-                        "Host: localhost\r\n" +
-                        "\r\n" +
-                        "\r\n");
+                "POST /publish HTTP/1.1\r\n Host: localhost\r\n\r\n\r\n");
 
         assertTrue(getResponse.contains("GET"));
         assertTrue(postResponse.contains("POST"));
