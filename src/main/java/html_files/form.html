@@ -58,51 +58,55 @@
 </head>
 
 <body>
+<div class="card">
+    <h2>Deploy Configuration</h2>
 
-    <div class="card">
-        <h2>Deploy Configuration</h2>
+    <form id="deployForm" action="http://localhost:8080/upload" method="post"
+          enctype="multipart/form-data" target="graphFrame"
+          onsubmit="return validateConfFile()">
+        <input type="file" id="configFile" name="file" accept=".conf" required>
+        <button type="submit">deploy</button>
+    </form>
+</div>
 
-        <form action="http://localhost:8080/upload" method="post" enctype="multipart/form-data" target="graphFrame">
+<script>
+    function validateConfFile() {
+        const fileInput = document.getElementById('configFile');
+        if (!fileInput.files.length) return false;
+        const fileName = fileInput.files[0].name;
+        if (!fileName.endsWith('.conf')) {
+            alert('Invalid file type. Please select a .conf file.');
+            return false;
+        }
+        return true;
+    }
+</script>
 
-            <input type="file" name="file" required>
+<div class="card">
+    <h2>Publish To Topic</h2>
 
-            <button type="submit">
-                deploy
-            </button>
-        </form>
-    </div>
+    <form action="http://localhost:8080/publish" method="get" target="tableFrame">
+        <input type="text" name="topic" placeholder="Topic name" required>
+        <input type="text" name="message" placeholder="Message value" required>
+        <button class="secondary" type="submit">
+            Publish
+        </button>
+    </form>
+</div>
 
-    <div class="card">
-        <h2>Publish To Topic</h2>
+<div class="card">
+    <h2>Optional Remote Controls</h2>
 
-        <form action="http://localhost:8080/publish" method="get" target="tableFrame">
+    <form action="http://localhost:8080/start" method="get" target="tableFrame">
+        <button type="submit">Start System</button>
+    </form>
 
-            <input type="text" name="topic" placeholder="Topic name" required>
+    <br>
 
-            <input type="text" name="message" placeholder="Message value" required>
-
-            <button class="secondary" type="submit">
-                Publish
-            </button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h2>Optional Remote Controls</h2>
-
-        <form action="http://localhost:8080/start" method="get" target="tableFrame">
-
-            <button type="submit">Start System</button>
-        </form>
-
-        <br>
-
-        <form action="http://localhost:8080/stop" method="get" target="tableFrame">
-
-            <button type="submit">Stop System</button>
-        </form>
-    </div>
+    <form action="http://localhost:8080/stop" method="get" target="tableFrame">
+        <button type="submit">Stop System</button>
+    </form>
+</div>
 
 </body>
-
 </html>

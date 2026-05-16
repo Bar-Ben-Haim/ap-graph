@@ -33,16 +33,23 @@ public class RequestParser {
         final String[] uriSegments = calculateUriSegments(uri, queryIndex);
         //noinspection StatementWithEmptyBody
         while ((requestLine = reader.readLine()) != null && !requestLine.isEmpty()) {
-            // This is a header line,we will ignore them
+            // This is a header line, we will ignore them
         }
 
         boolean metadataPhase = true;
-        StringBuilder contentBuilder = new StringBuilder();
+        boolean isMultipart = false;
+        final StringBuilder contentBuilder = new StringBuilder();
         String line;
         while (reader.ready() && (line = reader.readLine()) != null) {
             if (line.isEmpty()) {
                 if (metadataPhase) {
                     metadataPhase = false;
+                    continue;
+                }
+                // Multipart bodies have empty lines inside them (between part headers and content).
+                // For regular payloads we keep the original behaviour: stop on empty line.
+                if (isMultipart) {
+                    contentBuilder.append("\n");
                     continue;
                 }
                 break;
@@ -51,6 +58,10 @@ public class RequestParser {
             if (metadataPhase && line.contains("=")) {
                 extractMetadata(line, parameters);
             } else {
+                // Detect multipart: boundary lines start with '--'
+                if (metadataPhase && line.startsWith("--")) {
+                    isMultipart = true;
+                }
                 metadataPhase = false;
                 contentBuilder.append(line).append("\n");
             }

@@ -1,11 +1,11 @@
 package project_biu.configs;
 
-import java.io.Closeable;
-
-public interface Config extends Closeable {
+public interface Config {
     void create();
 
     String getName();
 
     int getVersion();
+
+    void close();
 }

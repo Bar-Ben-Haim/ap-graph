@@ -1,17 +1,19 @@
 package project_biu.views;
 
-import org.apache.commons.io.IOUtils;
 import project_biu.configs.Graph;
 import project_biu.configs.Node;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HtmlGraphWriter {
-    private static final String GRAPH_HTML_PATH = "files_html/graph.html";
+    private static final String[] GRAPH_HTML_SEARCH_PATHS = {
+            "html_files/graph.html",
+            "src/main/java/html_files/graph.html"
+    };
 
     private HtmlGraphWriter() {
     }
@@ -45,59 +47,33 @@ public class HtmlGraphWriter {
         return builder.toString();
     }
 
-    /**
-     * Builds all graph edges in JavaScript format.
-     *
-     * @param graph the graph.
-     * @return edges JavaScript string.
-     */
     private static String buildEdges(Graph graph) {
-
-        StringBuilder builder = new StringBuilder();
-
-        for (Node node : graph) {
-
-            for (Node edge : node.getEdges()) {
-
-                builder.append("{")
-                        .append("from: '")
-                        .append(node.getName())
-                        .append("', ")
-
-                        .append("to: '")
-                        .append(edge.getName())
-                        .append("'")
-                        .append("},\n");
-            }
-        }
+        final StringBuilder builder = new StringBuilder();
+        graph.forEach(node -> node.getEdges().forEach(edge -> builder
+                .append("{")
+                .append("from: '")
+                .append(node.getName())
+                .append("', ")
+                .append("to: '")
+                .append(edge.getName())
+                .append("'")
+                .append("},\n")));
 
         return builder.toString();
     }
 
-    /**
-     * Appends a topic node.
-     *
-     * @param builder target builder.
-     * @param node    topic node.
-     */
     private static void appendTopicNode(StringBuilder builder, Node node) {
+        final String name = removePrefix(node.getName());
+        final String valueStr = (node.getMsg() != null) ? "\\n" + node.getMsg().asText : "";
+
         builder.append("{")
-                .append("id: '")
-                .append(node.getName()).append("', ")
-                .append("label: '")
-                .append(removePrefix(node.getName()))
-                .append("', ")
+                .append("id: '").append(node.getName()).append("', ")
+                .append("label: '").append(name).append(valueStr).append("', ")
                 .append("shape: 'box', ")
                 .append("color: '#007bff'")
                 .append("},\n");
     }
 
-    /**
-     * Appends an agent node.
-     *
-     * @param builder target builder.
-     * @param node    agent node.
-     */
     private static void appendAgentNode(StringBuilder builder, Node node) {
         builder.append("{")
                 .append("id: '")
@@ -133,14 +109,14 @@ public class HtmlGraphWriter {
      * @throws IOException if loading fails.
      */
     private static String loadTemplate() throws IOException {
-        final InputStream inputStream = HtmlGraphWriter.class
-                .getClassLoader()
-                .getResourceAsStream(GRAPH_HTML_PATH);
-
-        if (inputStream == null) {
-            throw new RuntimeException("graph.html template not found");
+        for (String path : GRAPH_HTML_SEARCH_PATHS) { // TODO: change 1 path and not a file search
+            java.nio.file.Path p = java.nio.file.Paths.get(path);
+            if (java.nio.file.Files.exists(p)) {
+                return java.nio.file.Files.readString(p, StandardCharsets.UTF_8);
+            }
         }
-        return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        // TODO: change to real exeption handling like spring with a new created exception!!
+        throw new RuntimeException("graph.html template not found in: " + Arrays.toString(GRAPH_HTML_SEARCH_PATHS));
     }
 
     /**
@@ -155,7 +131,6 @@ public class HtmlGraphWriter {
         errorHtml.add("<h1>Error creating graph HTML</h1>");
         errorHtml.add("<p>" + e.getMessage() + "</p>");
         errorHtml.add("</body></html>");
-
         return errorHtml;
     }
 }

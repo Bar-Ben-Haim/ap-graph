@@ -178,6 +178,39 @@ class MyHTTPServerAndRequestParserTests {
         Thread.sleep(1200);
     }
 
+    @Test
+    void parseRequest_withMultipartFileUpload_extractsFullFileContent() throws IOException {
+        // This simulates exactly what a browser sends when you submit <input type="file">
+        final String boundary = "----WebKitFormBoundaryABC123";
+        final String fileContent = "project_biu.configs.agents.PlusAgent\nA,B\nC\nproject_biu.configs.agents.IncAgent\nC\nD";
+        final String body = boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"file\"; filename=\"simple.conf\"\r\n"
+                + "Content-Type: application/octet-stream\r\n"
+                + "\r\n"
+                + fileContent + "\r\n"
+                + boundary + "--\r\n";
+
+        final String request = "POST /upload HTTP/1.1\r\n"
+                + "Host: localhost\r\n"
+                + "Content-Type: multipart/form-data; boundary=" + boundary.substring(2) + "\r\n"
+                + "\r\n"
+                + body;
+
+        BufferedReader input = new BufferedReader(
+                new InputStreamReader(new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8))));
+        RequestParser.RequestInfo info = RequestParser.parseRequest(input);
+
+        Assertions.assertNotNull(info);
+        assertEquals("POST", info.httpCommand());
+        assertEquals("/upload", info.uri());
+
+        // The raw content must contain the file lines
+        String rawContent = new String(info.content(), StandardCharsets.UTF_8);
+        assertTrue(rawContent.contains("PlusAgent"), "Should contain PlusAgent class name");
+        assertTrue(rawContent.contains("IncAgent"), "Should contain IncAgent class name");
+        assertTrue(rawContent.contains("A,B"), "Should contain input topics");
+    }
+
     private static String sendSimpleGet(int port, String uri) throws IOException {
         String request = "GET " + uri + " HTTP/1.1\r\n"
                 + "Host: localhost\r\n"

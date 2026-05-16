@@ -84,10 +84,10 @@ public class MyHTTPServer extends Thread implements HTTPServer {
 
     private void handleClient(Socket client) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                OutputStream out = client.getOutputStream()) {
+             OutputStream out = client.getOutputStream()) {
             final RequestParser.RequestInfo info = RequestParser.parseRequest(in);
-            if (info == null)
-                return;
+            if (info == null) return;
+
             findBestMatchingServlet(info.httpCommand(), info.uri()).ifPresent(bestMatchingServlet -> {
                 try {
                     bestMatchingServlet.handle(info, out);
