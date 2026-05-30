@@ -47,7 +47,7 @@ public class RequestParser {
                     continue;
                 }
                 // Multipart bodies have empty lines inside them (between part headers and content).
-                // For regular payloads we keep the original behaviour: stop on empty line.
+                // For regular payloads we keep the original behavior: stop on empty line.
                 if (isMultipart) {
                     contentBuilder.append("\n");
                     continue;
@@ -84,6 +84,15 @@ public class RequestParser {
                 .toArray(String[]::new);
     }
 
+    /**
+     * A basic pojo for holding request info.
+     *
+     * @param httpCommand the http command (GET, POST, etc.)
+     * @param uri         the uri of the request
+     * @param uriSegments the uri segments of the request
+     * @param parameters  the parameters of the request
+     * @param content     the content of the request (body)
+     */
     public record RequestInfo(String httpCommand,
                               String uri,
                               String[] uriSegments,

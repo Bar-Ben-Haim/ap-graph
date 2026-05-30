@@ -1,5 +1,7 @@
 package project_biu.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import project_biu.servlets.Servlet;
 
 import java.io.BufferedReader;
@@ -20,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 public class MyHTTPServer extends Thread implements HTTPServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyHTTPServer.class);
     private final int port;
     private final ExecutorService executorService;
     private final ConcurrentMap<String, Servlet> getServlets;
@@ -58,11 +61,11 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                     // Expected every 1 second
                 } catch (IOException e) {
                     if (!stop)
-                        System.out.println(e.getMessage());
+                        LOGGER.error("Error accepting client connection", e);
                 }
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            LOGGER.error("Error while running the server socket", e);
         }
     }
 
@@ -77,7 +80,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                     try {
                         servlet.close();
                     } catch (IOException e) {
-                        System.out.println("Error closing servlet with error: " + e.getMessage());
+                        LOGGER.error("Error closing servlet", e);
                     }
                 });
     }
@@ -92,12 +95,13 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 try {
                     bestMatchingServlet.handle(info, out);
                 } catch (IOException e) {
-                    System.out.println(e.getMessage());
+                    LOGGER.atError().setCause(e).log("Error while handling client request with servlet: {}",
+                            bestMatchingServlet);
                 }
             });
             client.close();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            LOGGER.error("Error while handling client request", e);
         }
     }
 
@@ -107,7 +111,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     private Optional<Servlet> findBestMatchingServlet(String command, String requestUri) {
         final Optional<Map<String, Servlet>> optionalServletMap = findServletsMap(command);
         if (optionalServletMap.isEmpty()) {
-            System.out.println("Received unknown command to execute: " + command);
+            LOGGER.warn("Received unknown command to execute: {}", command);
             return Optional.empty();
         }
 
@@ -125,7 +129,7 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             case "POST" -> Optional.of(postServlets);
             case "DELETE" -> Optional.of(deleteServlets);
             default -> {
-                System.out.println("Received unknown command to register: " + httpCommand);
+                LOGGER.warn("Received unknown command to register: {}", httpCommand);
                 yield Optional.empty();
             }
         };

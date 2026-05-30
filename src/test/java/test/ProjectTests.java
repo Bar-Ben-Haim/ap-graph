@@ -1,7 +1,6 @@
 package test;
 
 import org.junit.jupiter.api.Test;
-import project_biu.configs.agents.BinOpAgent;
 import project_biu.configs.agents.PlusAgent;
 import project_biu.graph.*;
 

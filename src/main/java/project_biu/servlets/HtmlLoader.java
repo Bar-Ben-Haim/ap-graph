@@ -23,7 +23,7 @@ public class HtmlLoader implements Servlet {
 
         String filename = segments[segments.length - 1];
 
-        // Use the configured path, but add a fallback to src/main/java if run from
+        // Use the configured path but add a fallback to src/main/java if run from
         // project root
         Path filePath = Paths.get(htmlFilesPath, filename);
         if (!Files.exists(filePath)) {
@@ -51,5 +51,6 @@ public class HtmlLoader implements Servlet {
 
     @Override
     public void close() throws IOException {
+        // Nothing to close
     }
 }

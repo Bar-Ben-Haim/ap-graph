@@ -1,5 +1,8 @@
 package project_biu.servlets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import project_biu.configs.Config;
 import project_biu.configs.GenericConfig;
 import project_biu.configs.Graph;
 import project_biu.graph.TopicManagerSingleton;
@@ -13,7 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ConfLoader implements Servlet {
-    protected static Graph activeGraph = null; // TODO: think on a better way to do this
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfLoader.class);
+    protected static Graph activeGraph = null; // TODO: Change to repository
+    private Config config;
     private final ResponseUtils responseUtils;
 
     public ConfLoader(ResponseUtils responseUtils) {
@@ -27,21 +32,29 @@ public class ConfLoader implements Servlet {
             final boolean isValid = isMultipartVaid(result, toClient);
             if (!isValid) return;
             if (activeGraph != null) activeGraph.close();
+            if (config != null) config.close();
             TopicManagerSingleton.get().clear();
 
             final Path tempConfFile = Files.createTempFile("config_", ".conf");
             Files.writeString(tempConfFile, result.content());
 
-            final GenericConfig config = new GenericConfig();
-            config.setConfFile(tempConfFile.toString());
-            config.create();
+            final GenericConfig genericConfig = new GenericConfig();
+            genericConfig.setConfFile(tempConfFile.toString());
+            genericConfig.create();
+            config = genericConfig;
 
             final Graph graph = new Graph();
             graph.createFromTopics();
+            if (graph.hasCycles()) {
+                LOGGER.info("A user requested to load a graph with cycles, sending error response");
+                responseUtils.badRequest(toClient, "Graph has cycles!");
+                graph.close();
+                return;
+            }
             activeGraph = graph;
             responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
-        } catch (Exception e) {
-            e.printStackTrace(); // TODO:change to logger in all project!!
+        } catch (RuntimeException e) {
+            LOGGER.error("Error loading config", e);
             responseUtils.internalServerError(toClient, e);
         }
     }
@@ -50,6 +63,7 @@ public class ConfLoader implements Servlet {
      * Parses a multipart/form-data body, returning the filename and content
      * of the first file part.
      */
+    //TODO:change from here
     private static MultipartResult parseMultipart(String raw) {
         final String[] lines = raw.split("\n");
         if (lines.length < 1) return null;
@@ -118,6 +132,7 @@ public class ConfLoader implements Servlet {
 
     @Override
     public void close() throws IOException {
-        // TODO document why this method is empty
+        if (activeGraph != null) activeGraph.close();
+        if (config != null) config.close();
     }
 }

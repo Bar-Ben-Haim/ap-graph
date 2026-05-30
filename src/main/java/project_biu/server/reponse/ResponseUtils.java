@@ -50,7 +50,14 @@ public class ResponseUtils {
                          MediaType mediaType,
                          Object body) throws IOException {
         final StringBuilder response = new StringBuilder();
-        final byte[] bodyBytes = body != null ? objectMapper.writeValueAsBytes(body) : null;
+
+        final byte[] bodyBytes = switch (body) {
+            case null -> new byte[0];
+            case String str when mediaType != MediaType.APPLICATION_JSON -> str.getBytes(StandardCharsets.UTF_8);
+            case byte[] bytes -> bytes;
+            default -> objectMapper.writeValueAsBytes(body);
+        };
+
         response.append("HTTP/1.1 ")
                 .append(statusCode.getCode())
                 .append(" ").append(statusCode.getReasonPhrase())

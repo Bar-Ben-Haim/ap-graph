@@ -126,6 +126,7 @@ public class HtmlGraphWriter {
      * @return error HTML.
      */
     private static List<String> createErrorHtml(Exception e) {
+        //TODO: change to global message and change to static resource html
         final List<String> errorHtml = new ArrayList<>();
         errorHtml.add("<html><body>");
         errorHtml.add("<h1>Error creating graph HTML</h1>");
