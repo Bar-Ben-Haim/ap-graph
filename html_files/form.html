@@ -86,25 +86,15 @@
     <h2>Publish To Topic</h2>
 
     <form action="http://localhost:8080/publish" method="get" target="tableFrame">
-        <input type="text" name="topic" placeholder="Topic name" required>
-        <input type="text" name="message" placeholder="Message value" required>
+        <label>
+            <input type="text" name="topic" placeholder="Topic name" required>
+        </label>
+        <label>
+            <input type="text" name="message" placeholder="Message value" required>
+        </label>
         <button class="secondary" type="submit">
             Publish
         </button>
-    </form>
-</div>
-
-<div class="card">
-    <h2>Optional Remote Controls</h2>
-
-    <form action="http://localhost:8080/start" method="get" target="tableFrame">
-        <button type="submit">Start System</button>
-    </form>
-
-    <br>
-
-    <form action="http://localhost:8080/stop" method="get" target="tableFrame">
-        <button type="submit">Stop System</button>
     </form>
 </div>
 

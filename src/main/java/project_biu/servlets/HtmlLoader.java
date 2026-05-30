@@ -1,6 +1,9 @@
 package project_biu.servlets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import project_biu.server.RequestParser;
+import project_biu.server.reponse.ResponseUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,43 +12,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class HtmlLoader implements Servlet {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HtmlLoader.class);
+    private final ResponseUtils responseUtils;
     private final String htmlFilesPath;
 
-    public HtmlLoader(String htmlFilesPath) {
+    public HtmlLoader(ResponseUtils responseUtils, String htmlFilesPath) {
+        this.responseUtils = responseUtils;
         this.htmlFilesPath = htmlFilesPath;
     }
 
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
-        String[] segments = ri.uriSegments();
+        final String[] segments = ri.uriSegments();
         if (segments.length == 0)
             return;
 
-        String filename = segments[segments.length - 1];
-
-        // Use the configured path but add a fallback to src/main/java if run from
-        // project root
-        Path filePath = Paths.get(htmlFilesPath, filename);
-        if (!Files.exists(filePath)) {
-            filePath = Paths.get("src", "main", "java", htmlFilesPath, filename);
-        }
+        final String filename = segments[segments.length - 1];
+        final Path filePath = Paths.get(htmlFilesPath, filename);
 
         if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
-            final byte[] content = Files.readAllBytes(filePath);
-            final String response = "HTTP/1.1 200 OK\r\n" +
-                    "Content-Type: text/html\r\n" +
-                    "Content-Length: " + content.length + "\r\n" +
-                    "Connection: close\r\n\r\n";
-            toClient.write(response.getBytes());
-            toClient.write(content);
+            responseUtils.okHtml(toClient, Files.readAllBytes(filePath));
         } else {
-            final String notFoundHtml = "<html><body><h1>404 File Not Found</h1></body></html>";
-            final String response = "HTTP/1.1 404 Not Found\r\n" +
-                    "Content-Type: text/html\r\n" +
-                    "Content-Length: " + notFoundHtml.length() + "\r\n" +
-                    "Connection: close\r\n\r\n" +
-                    notFoundHtml;
-            toClient.write(response.getBytes());
+            LOGGER.warn("An html file not found: {}", filePath);
+            responseUtils.notFound(toClient);
         }
     }
 

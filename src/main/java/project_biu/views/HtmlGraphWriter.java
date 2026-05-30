@@ -5,15 +5,14 @@ import project_biu.configs.Node;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class HtmlGraphWriter {
-    private static final String[] GRAPH_HTML_SEARCH_PATHS = {
-            "html_files/graph.html",
-            "src/main/java/html_files/graph.html"
-    };
+    private static final Path GRAPH_HTML_SEARCH_PATH = Path.of("html_files/graph.html");
+
+    private static final Path ERROR_HTML_SEARCH_PATH = Path.of("html_files/error.html");
 
     private HtmlGraphWriter() {
     }
@@ -26,7 +25,7 @@ public class HtmlGraphWriter {
      */
     public static List<String> getGraphHTML(Graph graph) {
         try {
-            String html = loadTemplate();
+            String html = loadHtmlFile(GRAPH_HTML_SEARCH_PATH);
             final String nodesHtml = buildNodes(graph);
             final String edgesHtml = buildEdges(graph);
             html = html.replace("//__NODES__", nodesHtml);
@@ -103,20 +102,36 @@ public class HtmlGraphWriter {
     }
 
     /**
+     * Generates an error page HTML by injecting the error type and message into error.html.
+     *
+     * @param errorType    one of: NOT_LOADED, CYCLES_DETECTED, RENDER_ERROR, INTERNAL_ERROR
+     * @param errorMessage human-readable description of the error
+     * @return rendered error HTML string
+     */
+    public static String getErrorHtml(String errorType, String errorMessage) {
+        try {
+            String html = loadHtmlFile(ERROR_HTML_SEARCH_PATH);
+            html = html.replace("__ERROR_TYPE__", errorType);
+            html = html.replace("__ERROR_MESSAGE__", errorMessage);
+            return html;
+        } catch (IOException | RuntimeException e) {
+            return "<html><body><h2>" + e.getClass() + "</h2><p>" + e.getMessage() + "</p></body></html>";
+        }
+    }
+
+
+    /**
      * Loads the static graph HTML template.
      *
      * @return template content.
      * @throws IOException if loading fails.
      */
-    private static String loadTemplate() throws IOException {
-        for (String path : GRAPH_HTML_SEARCH_PATHS) { // TODO: change 1 path and not a file search
-            java.nio.file.Path p = java.nio.file.Paths.get(path);
-            if (java.nio.file.Files.exists(p)) {
-                return java.nio.file.Files.readString(p, StandardCharsets.UTF_8);
-            }
+    private static String loadHtmlFile(Path filePath) throws IOException {
+        if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
+            return Files.readString(filePath, StandardCharsets.UTF_8);
         }
-        // TODO: change to real exeption handling like spring with a new created exception!!
-        throw new RuntimeException("graph.html template not found in: " + Arrays.toString(GRAPH_HTML_SEARCH_PATHS));
+        //TODO: change to logging and return normal html
+        throw new RuntimeException("HTML template not found in or is a directory: " + filePath);
     }
 
     /**
@@ -126,12 +141,6 @@ public class HtmlGraphWriter {
      * @return error HTML.
      */
     private static List<String> createErrorHtml(Exception e) {
-        //TODO: change to global message and change to static resource html
-        final List<String> errorHtml = new ArrayList<>();
-        errorHtml.add("<html><body>");
-        errorHtml.add("<h1>Error creating graph HTML</h1>");
-        errorHtml.add("<p>" + e.getMessage() + "</p>");
-        errorHtml.add("</body></html>");
-        return errorHtml;
+        return List.of(getErrorHtml("RENDER_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
     }
 }

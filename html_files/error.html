@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Error</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        .error-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 40px 48px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .error-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .badge-not-loaded   { background: #e9f0ff; color: #3b5bdb; }
+        .badge-cycles       { background: #fff3cd; color: #856404; }
+        .badge-render-error { background: #f8d7da; color: #842029; }
+        .badge-internal     { background: #f8d7da; color: #842029; }
+        .badge-unknown      { background: #e2e3e5; color: #41464b; }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #adb5bd;
+            border-top: 1px solid #f1f3f5;
+            padding-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="error-card" id="error-card">
+    <div class="error-badge" id="error-badge">__ERROR_TYPE__</div>
+    <div class="error-icon" id="error-icon"></div>
+    <h2 id="error-title">Error</h2>
+    <p class="error-message" id="error-message">__ERROR_MESSAGE__</p>
+    <p class="hint" id="error-hint"></p>
+</div>
+
+<script>
+    const type    = "__ERROR_TYPE__";
+    const message = document.getElementById("error-message").textContent;
+    const badge   = document.getElementById("error-badge");
+    const icon    = document.getElementById("error-icon");
+    const title   = document.getElementById("error-title");
+    const hint    = document.getElementById("error-hint");
+
+    const config = {
+        "NOT_LOADED": {
+            badgeClass: "badge-not-loaded",
+            icon: "[  ]",
+            title: "No Graph Deployed",
+            hint: "Upload a .conf file using the form on the left panel."
+        },
+        "CYCLES_DETECTED": {
+            badgeClass: "badge-cycles",
+            icon: "[!]",
+            title: "Cyclic Graph Detected",
+            hint: "Revise your configuration so that all agent dependencies form a directed acyclic graph (DAG)."
+        },
+        "RENDER_ERROR": {
+            badgeClass: "badge-render-error",
+            icon: "[x]",
+            title: "Graph Render Failed",
+            hint: "The server encountered an error while generating the graph visualization."
+        },
+        "INTERNAL_ERROR": {
+            badgeClass: "badge-internal",
+            icon: "[x]",
+            title: "Internal Server Error",
+            hint: "An unexpected error occurred. Check the server logs for details."
+        }
+    };
+
+    const c = config[type] || {
+        badgeClass: "badge-unknown",
+        icon: "[?]",
+        title: "Unknown Error",
+        hint: ""
+    };
+
+    badge.classList.add(c.badgeClass);
+    icon.textContent  = c.icon;
+    title.textContent = c.title;
+    hint.textContent  = c.hint;
+</script>
+</body>
+</html>
