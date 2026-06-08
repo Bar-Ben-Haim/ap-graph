@@ -31,6 +31,7 @@ public class ConfLoader implements Servlet {
         if (!isMultipartValid(result, toClient)) return;
 
         try {
+            assert result != null; // isMultipartValid() guarantees this
             final Graph graph = graphService.deploy(result.filename(), result.content());
             responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
         } catch (ConfigException e) {

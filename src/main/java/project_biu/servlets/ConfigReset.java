@@ -29,7 +29,6 @@ public class ConfigReset implements Servlet {
         try {
             graphService.reset();
         } catch (ConfigException e) {
-            // Nothing to reset; the refreshed views will show the real state.
             LOGGER.info("Reset skipped ({}): {}", e.getError(), e.getMessage());
         }
         responseUtils.ok(toClient);

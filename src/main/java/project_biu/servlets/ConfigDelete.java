@@ -28,6 +28,6 @@ public class ConfigDelete implements Servlet {
 
     @Override
     public void close() throws IOException {
-        // GraphService lifecycle is owned by ConfLoader.
+        graphService.deleteAll();
     }
 }
