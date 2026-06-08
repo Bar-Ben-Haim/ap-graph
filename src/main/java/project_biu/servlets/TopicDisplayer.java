@@ -4,20 +4,20 @@ import project_biu.configs.Graph;
 import project_biu.configs.Node;
 import project_biu.graph.Message;
 import project_biu.graph.TopicManagerSingleton;
-import project_biu.repository.GraphRepository;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
+import project_biu.service.GraphService;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class TopicDisplayer implements Servlet {
     private final ResponseUtils responseUtils;
-    private final GraphRepository graphRepository;
+    private final GraphService graphService;
 
-    public TopicDisplayer(ResponseUtils responseUtils, GraphRepository graphRepository) {
+    public TopicDisplayer(ResponseUtils responseUtils, GraphService graphService) {
         this.responseUtils = responseUtils;
-        this.graphRepository = graphRepository;
+        this.graphService = graphService;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class TopicDisplayer implements Servlet {
                 .append("</style></head><body>")
                 .append("<table><tr><th>Topic</th><th>Last Value</th></tr>");
 
-        final Graph graph = graphRepository.get();
+        final Graph graph = graphService.get();
         if (graph != null) {
             for (Node node : graph) {
                 if (node.getName().startsWith("T")) {
@@ -62,6 +62,6 @@ public class TopicDisplayer implements Servlet {
 
     @Override
     public void close() throws IOException {
-        graphRepository.delete();
+        graphService.deleteAll();
     }
 }

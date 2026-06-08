@@ -17,7 +17,6 @@ public class UnaryOpAgent implements Agent {
                         String inputTopicName,
                         String outputTopicName,
                         UnaryOperator<Double> operator) {
-
         final TopicManagerSingleton.TopicManager tm = TopicManagerSingleton.get();
         this.name = name;
         this.inputTopic = tm.getTopic(inputTopicName);

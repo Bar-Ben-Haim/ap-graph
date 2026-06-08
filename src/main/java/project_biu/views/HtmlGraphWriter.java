@@ -1,5 +1,6 @@
 package project_biu.views;
 
+import project_biu.configs.ConfigError;
 import project_biu.configs.Graph;
 import project_biu.configs.Node;
 
@@ -10,9 +11,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class HtmlGraphWriter {
-    private static final Path GRAPH_HTML_SEARCH_PATH = Path.of("html_files/graph.html");
-
-    private static final Path ERROR_HTML_SEARCH_PATH = Path.of("html_files/error.html");
+    private static final Path GRAPH_HTML_PATH = Path.of("html_files/graph.html");
+    private static final Path ERROR_HTML_PATH = Path.of("html_files/error.html");
 
     private HtmlGraphWriter() {
     }
@@ -25,7 +25,7 @@ public class HtmlGraphWriter {
      */
     public static List<String> getGraphHTML(Graph graph) {
         try {
-            String html = loadHtmlFile(GRAPH_HTML_SEARCH_PATH);
+            String html = loadHtmlFile(GRAPH_HTML_PATH);
             final String nodesHtml = buildNodes(graph);
             final String edgesHtml = buildEdges(graph);
             html = html.replace("//__NODES__", nodesHtml);
@@ -102,21 +102,45 @@ public class HtmlGraphWriter {
     }
 
     /**
-     * Generates an error page HTML by injecting the error type and message into error.html.
+     * Generates an error page using the error's default message.
      *
-     * @param errorType    one of: NOT_LOADED, CYCLES_DETECTED, RENDER_ERROR, INTERNAL_ERROR
-     * @param errorMessage human-readable description of the error
+     * @param error the error condition to render
      * @return rendered error HTML string
      */
-    public static String getErrorHtml(String errorType, String errorMessage) {
+    public static String getErrorHtml(ConfigError error) {
+        return getErrorHtml(error, error.defaultMessage());
+    }
+
+    /**
+     * Generates an error page for the given error with a custom message. The error's
+     * {@link ConfigError#name() name}, {@link ConfigError#severity() severity}, and the
+     * message are HTML-escaped and injected into error.html, which derives the title and
+     * styling from them. This keeps {@link ConfigError} the single source of truth.
+     *
+     * @param error   the error condition to render
+     * @param message human-readable description of the error
+     * @return rendered error HTML string
+     */
+    public static String getErrorHtml(ConfigError error, String message) {
         try {
-            String html = loadHtmlFile(ERROR_HTML_SEARCH_PATH);
-            html = html.replace("__ERROR_TYPE__", errorType);
-            html = html.replace("__ERROR_MESSAGE__", errorMessage);
+            String html = loadHtmlFile(ERROR_HTML_PATH);
+            html = html.replace("__ERROR_TYPE__", escapeHtml(error.name()));
+            html = html.replace("__ERROR_SEVERITY__", error.severity().name().toLowerCase());
+            html = html.replace("__ERROR_MESSAGE__", escapeHtml(message));
             return html;
         } catch (IOException | RuntimeException e) {
-            return "<html><body><h2>" + e.getClass() + "</h2><p>" + e.getMessage() + "</p></body></html>";
+            return "<html><body><h2>" + escapeHtml(e.getClass().getSimpleName())
+                    + "</h2><p>" + escapeHtml(e.getMessage()) + "</p></body></html>";
         }
+    }
+
+    private static String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
 
@@ -141,6 +165,7 @@ public class HtmlGraphWriter {
      * @return error HTML.
      */
     private static List<String> createErrorHtml(Exception e) {
-        return List.of(getErrorHtml("RENDER_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        return List.of(getErrorHtml(ConfigError.RENDER_ERROR,
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
     }
 }

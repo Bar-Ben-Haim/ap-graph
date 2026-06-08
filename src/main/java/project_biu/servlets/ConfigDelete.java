@@ -1,36 +1,33 @@
 package project_biu.servlets;
 
-import project_biu.configs.ConfigError;
-import project_biu.configs.Graph;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
 import project_biu.service.GraphService;
-import project_biu.views.HtmlGraphWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class GraphDisplayer implements Servlet {
+/**
+ * Removes the active configuration entirely: closes all agents, clears every topic,
+ * and discards the stored graph and configuration.
+ */
+public class ConfigDelete implements Servlet {
     private final ResponseUtils responseUtils;
     private final GraphService graphService;
 
-    public GraphDisplayer(ResponseUtils responseUtils, GraphService graphService) {
+    public ConfigDelete(ResponseUtils responseUtils, GraphService graphService) {
         this.responseUtils = responseUtils;
         this.graphService = graphService;
     }
 
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
-        final Graph graph = graphService.get();
-        if (graph != null) {
-            responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
-        } else {
-            responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(ConfigError.NOT_LOADED));
-        }
+        graphService.deleteActiveConfig();
+        responseUtils.ok(toClient);
     }
 
     @Override
     public void close() throws IOException {
-        graphService.deleteAll();
+        // GraphService lifecycle is owned by ConfLoader.
     }
 }
