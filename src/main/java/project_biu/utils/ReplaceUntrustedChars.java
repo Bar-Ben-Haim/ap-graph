@@ -1,10 +1,11 @@
 package project_biu.utils;
 
 /**
- * Escapes untrusted text at output: {@code html()} for HTML content, {@code js()} for single-quoted JS strings.
+ * Replaces untrusted text at output (with the same safe values):
+ * {@code html()} for HTML content, {@code js()} for single-quoted JS strings.
  */
-public final class EscapeUntrustedChars {
-    private EscapeUntrustedChars() {
+public final class ReplaceUntrustedChars {
+    private ReplaceUntrustedChars() {
     }
 
     public static String html(String text) {

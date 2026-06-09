@@ -8,7 +8,7 @@ import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
 import project_biu.service.GraphService;
 import project_biu.utils.NumberFormatter;
-import project_biu.utils.EscapeUntrustedChars;
+import project_biu.utils.ReplaceUntrustedChars;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -44,10 +44,10 @@ public class TopicDisplayer implements Servlet {
         if (graph != null) {
             for (Node node : graph) {
                 if (node.getName().startsWith("T")) {
-                    final String cleanName = EscapeUntrustedChars.html(node.getName().substring(1));
+                    final String cleanName = ReplaceUntrustedChars.html(node.getName().substring(1));
                     final Message msg = node.getMsg();
                     final String lastValue = (msg != null) ?
-                            EscapeUntrustedChars.html(NumberFormatter.format(msg.asDouble, msg.asText)) :
+                            ReplaceUntrustedChars.html(NumberFormatter.format(msg.asDouble, msg.asText)) :
                             "";
                     html.append("<tr><td>").append(cleanName).append("</td><td>").append(lastValue).append("</td></tr>");
                 }
