@@ -27,7 +27,7 @@ public class ConfigDelete implements Servlet {
     }
 
     @Override
-    public void close() throws IOException {
-        graphService.deleteAll();
+    public void close() {
+        // Nothing to Impl
     }
 }

@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,8 @@ public class GenericConfig implements Config {
 
         for (int i = 0; i < lines.size(); i += LINES_PER_AGENT) {
             final String className = lines.get(i).trim();
-            final String[] subs = lines.get(i + 1).split(",");
-            final String[] pubs = lines.get(i + 2).split(",");
+            final String[] subs = splitTopics(lines.get(i + 1));
+            final String[] pubs = splitTopics(lines.get(i + 2));
             agents.add(new ParallelAgent(instantiateAgent(className, subs, pubs), 1000));
         }
     }
@@ -98,6 +99,10 @@ public class GenericConfig implements Config {
             throw new ConfigException(ConfigError.INVALID_AGENT, "Class " + className + " does not implement Agent.");
         }
         return agent;
+    }
+
+    private static String[] splitTopics(String line) {
+        return Arrays.stream(line.split(",")).map(String::trim).toArray(String[]::new);
     }
 
     private static String rootMessage(Throwable t) {

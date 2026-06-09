@@ -3,6 +3,9 @@ package project_biu.views;
 import project_biu.configs.ConfigError;
 import project_biu.configs.Graph;
 import project_biu.configs.Node;
+import project_biu.graph.Message;
+import project_biu.utils.NumberFormatter;
+import project_biu.utils.EscapeUntrustedChars;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,10 +54,10 @@ public class HtmlGraphWriter {
         graph.forEach(node -> node.getEdges().forEach(edge -> builder
                 .append("{")
                 .append("from: '")
-                .append(node.getName())
+                .append(EscapeUntrustedChars.js(node.getName()))
                 .append("', ")
                 .append("to: '")
-                .append(edge.getName())
+                .append(EscapeUntrustedChars.js(edge.getName()))
                 .append("'")
                 .append("},\n")));
 
@@ -62,11 +65,14 @@ public class HtmlGraphWriter {
     }
 
     private static void appendTopicNode(StringBuilder builder, Node node) {
-        final String name = removePrefix(node.getName());
-        final String valueStr = (node.getMsg() != null) ? "\\n" + node.getMsg().asText : "";
+        final String name = EscapeUntrustedChars.js(removePrefix(node.getName()));
+        final Message msg = node.getMsg();
+        final String valueStr = (msg != null)
+                ? "\\n" + EscapeUntrustedChars.js(NumberFormatter.format(msg.asDouble, msg.asText))
+                : "";
 
         builder.append("{")
-                .append("id: '").append(node.getName()).append("', ")
+                .append("id: '").append(EscapeUntrustedChars.js(node.getName())).append("', ")
                 .append("label: '").append(name).append(valueStr).append("', ")
                 .append("shape: 'box', ")
                 .append("color: '#007bff'")
@@ -76,10 +82,10 @@ public class HtmlGraphWriter {
     private static void appendAgentNode(StringBuilder builder, Node node) {
         builder.append("{")
                 .append("id: '")
-                .append(node.getName())
+                .append(EscapeUntrustedChars.js(node.getName()))
                 .append("', ")
                 .append("label: '")
-                .append(removePrefix(node.getName()))
+                .append(EscapeUntrustedChars.js(removePrefix(node.getName())))
                 .append("', ")
                 .append("shape: 'circle', ")
                 .append("color: '#28a745'")
@@ -124,25 +130,15 @@ public class HtmlGraphWriter {
     public static String getErrorHtml(ConfigError error, String message) {
         try {
             String html = loadHtmlFile(ERROR_HTML_PATH);
-            html = html.replace("__ERROR_TYPE__", escapeHtml(error.name()));
+            html = html.replace("__ERROR_TYPE__", EscapeUntrustedChars.html(error.name()));
             html = html.replace("__ERROR_SEVERITY__", error.severity().name().toLowerCase());
-            html = html.replace("__ERROR_MESSAGE__", escapeHtml(message));
+            html = html.replace("__ERROR_MESSAGE__", EscapeUntrustedChars.html(message));
             return html;
         } catch (IOException | RuntimeException e) {
-            return "<html><body><h2>" + escapeHtml(e.getClass().getSimpleName())
-                    + "</h2><p>" + escapeHtml(e.getMessage()) + "</p></body></html>";
+            return "<html><body><h2>" + EscapeUntrustedChars.html(e.getClass().getSimpleName())
+                    + "</h2><p>" + EscapeUntrustedChars.html(e.getMessage()) + "</p></body></html>";
         }
     }
-
-    private static String escapeHtml(String text) {
-        if (text == null) return "";
-        return text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
-    }
-
 
     /**
      * Loads the static graph HTML template.

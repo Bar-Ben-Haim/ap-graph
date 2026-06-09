@@ -7,11 +7,14 @@ import project_biu.graph.TopicManagerSingleton;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
 import project_biu.service.GraphService;
+import project_biu.utils.NumberFormatter;
+import project_biu.utils.EscapeUntrustedChars;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class TopicDisplayer implements Servlet {
+    private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
     private final ResponseUtils responseUtils;
     private final GraphService graphService;
 
@@ -26,7 +29,7 @@ public class TopicDisplayer implements Servlet {
         final String messageVal = ri.parameters().get("message");
 
         if (topicName != null && messageVal != null && !topicName.isEmpty()) {
-            TopicManagerSingleton.get().getTopic(topicName).publish(new Message(messageVal));
+            TOPIC_MANAGER.getTopic(topicName).publish(new Message(messageVal));
         }
 
         final StringBuilder html = new StringBuilder();
@@ -41,8 +44,11 @@ public class TopicDisplayer implements Servlet {
         if (graph != null) {
             for (Node node : graph) {
                 if (node.getName().startsWith("T")) {
-                    final String cleanName = node.getName().substring(1);
-                    final String lastValue = (node.getMsg() != null) ? node.getMsg().asText : "";
+                    final String cleanName = EscapeUntrustedChars.html(node.getName().substring(1));
+                    final Message msg = node.getMsg();
+                    final String lastValue = (msg != null) ?
+                            EscapeUntrustedChars.html(NumberFormatter.format(msg.asDouble, msg.asText)) :
+                            "";
                     html.append("<tr><td>").append(cleanName).append("</td><td>").append(lastValue).append("</td></tr>");
                 }
             }
@@ -61,7 +67,7 @@ public class TopicDisplayer implements Servlet {
     }
 
     @Override
-    public void close() throws IOException {
-        graphService.deleteAll();
+    public void close() {
+        // Nothing to Impl
     }
 }

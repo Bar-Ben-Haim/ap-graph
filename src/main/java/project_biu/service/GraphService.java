@@ -18,7 +18,7 @@ import java.nio.file.Path;
  * requests cannot corrupt the shared {@link TopicManagerSingleton}.
  */
 public class GraphService {
-    private static final TopicManagerSingleton.TopicManager topicManager = TopicManagerSingleton.get();
+    private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
     private final GraphRepository graphRepository;
     private final FileRepository fileRepository;
     private Config config;
@@ -62,25 +62,19 @@ public class GraphService {
     }
 
     /**
-     * Tears down the graph and removes the active configuration.
+     * Tears down the graph and removes <em>every</em> stored configuration file.
      */
     public synchronized void deleteAll() {
-        closeConfig();
-        topicManager.clear();
-        graphRepository.delete();
-        if (activeConfigName != null) {
-            fileRepository.deleteAll();
-            activeConfigName = null;
-        }
+        releaseGraph();
+        fileRepository.deleteAll();
+        activeConfigName = null;
     }
 
     /**
-     * Tears down the graph and removes the active configuration.
+     * Tears down the graph and removes only the active configuration file.
      */
     public synchronized void deleteActiveConfig() {
-        closeConfig();
-        topicManager.clear();
-        graphRepository.delete();
+        releaseGraph();
         if (activeConfigName != null) {
             fileRepository.delete(activeConfigName);
             activeConfigName = null;
@@ -88,9 +82,7 @@ public class GraphService {
     }
 
     private Graph build() {
-        closeConfig();
-        topicManager.clear();
-        graphRepository.delete();
+        releaseGraph();
 
         final Path configPath = fileRepository.location(activeConfigName)
                 .orElseThrow(() -> new ConfigException(ConfigError.FILE_ERROR,
@@ -114,5 +106,11 @@ public class GraphService {
     private void closeConfig() {
         if (config != null) config.close();
         config = null;
+    }
+
+    private synchronized void releaseGraph() {
+        closeConfig();
+        TOPIC_MANAGER.clear();
+        graphRepository.delete();
     }
 }

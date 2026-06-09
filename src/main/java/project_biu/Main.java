@@ -23,6 +23,7 @@ public class Main {
         final GraphRepository graphRepository = new LocalGraphRepository();
         final FileRepository fileRepository = new LocalFileRepository(Path.of("uploaded_configs"));
         final GraphService graphService = new GraphService(graphRepository, fileRepository);
+        fileRepository.deleteAll();
 
         server.addServlet("GET", "/publish", new TopicDisplayer(responseUtils, graphService));
         server.addServlet("GET", "/graph", new GraphDisplayer(responseUtils, graphService));
@@ -31,11 +32,16 @@ public class Main {
         server.addServlet("DELETE", "/delete", new ConfigDelete(responseUtils, graphService));
         server.addServlet("GET", "/app/", new HtmlLoader(responseUtils, "html_files"));
 
-        Runtime.getRuntime().addShutdownHook(new Thread(server::close, "server-shutdown"));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> closeResources(server, graphService), "server-shutdown"));
         server.start();
         //noinspection ResultOfMethodCallIgnored
         System.in.read();
-        server.close();
+        closeResources(server, graphService);
         LOGGER.info("done");
+    }
+
+    private static void closeResources(HTTPServer httpServer, GraphService graphService) {
+        httpServer.close();
+        graphService.deleteAll();
     }
 }

@@ -41,7 +41,7 @@ public class TopicManagerSingleton {
             return topics.values();
         }
 
-        public void clear() {
+        public synchronized void clear() {
             topics.clear();
         }
     }
