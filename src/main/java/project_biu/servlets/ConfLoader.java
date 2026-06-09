@@ -8,6 +8,7 @@ import project_biu.configs.Graph;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
 import project_biu.service.GraphService;
+import project_biu.utils.InputSanitizer;
 import project_biu.views.HtmlGraphWriter;
 
 import java.io.IOException;
@@ -27,11 +28,9 @@ public class ConfLoader implements Servlet {
 
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
-        final MultipartResult result = parseMultipart(new String(ri.content()));
-        if (!isMultipartValid(result, toClient)) return;
-
         try {
-            assert result != null; // isMultipartValid() guarantees this
+            final MultipartResult result = parseMultipart(new String(ri.content()));
+            validateMultipart(result);
             final Graph graph = graphService.deploy(result.filename(), result.content());
             responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
         } catch (ConfigException e) {
@@ -92,24 +91,19 @@ public class ConfLoader implements Servlet {
     private record MultipartResult(String filename, String content) {
     }
 
-    private boolean isMultipartValid(MultipartResult result, OutputStream toClient) throws IOException {
+    private void validateMultipart(MultipartResult result) {
         if (result == null) {
-            responseUtils.badRequest(toClient, "Could not parse multipart body");
-            return false;
+            throw new ConfigException(ConfigError.INTERNAL_ERROR);
         }
 
         if (!result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
-            responseUtils.badRequest(toClient,
-                    String.format("Invalid file type: %s, Only .conf files are accepted.", result.filename()));
-            return false;
+            throw new ConfigException(ConfigError.INVALID_FORMAT, "Invalid file name: "
+                    + InputSanitizer.sanitizeFileName(result.filename()));
         }
 
         if (result.content() == null || result.content().isEmpty()) {
-            responseUtils.badRequest(toClient, "Config file is empty.");
-            return false; //TODO: change to ok request but the content is empty and add error using Config.error = EMPTY_CONFIG later
+            throw new ConfigException(ConfigError.EMPTY_CONFIG);
         }
-
-        return true;
     }
 
     @Override

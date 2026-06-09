@@ -76,6 +76,10 @@ public class GenericConfig implements Config {
             throw new ConfigException(ConfigError.UNKNOWN_AGENT, "Unknown agent class: " + className, e);
         }
 
+        if (!Agent.class.isAssignableFrom(clazz)) {
+            throw new ConfigException(ConfigError.INVALID_AGENT, "Class " + className + " does not implement Agent.");
+        }
+
         final Constructor<?> constructor;
         try {
             constructor = clazz.getConstructor(String[].class, String[].class);
@@ -95,10 +99,7 @@ public class GenericConfig implements Config {
                     "Failed to initialize agent " + className + ": " + rootMessage(e), e);
         }
 
-        if (!(instance instanceof Agent agent)) {
-            throw new ConfigException(ConfigError.INVALID_AGENT, "Class " + className + " does not implement Agent.");
-        }
-        return agent;
+        return (Agent) instance;
     }
 
     private static String[] splitTopics(String line) {

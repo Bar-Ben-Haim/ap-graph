@@ -7,8 +7,8 @@ import project_biu.graph.TopicManagerSingleton;
 
 /**
  * Tracks the running maximum of all numeric values seen on the input topic.
- * A new message is published only when the current maximum is updated (i.e., a new record value arrives).
- * Non-numeric messages are silently ignored.
+ * A new message is published only when the maximum is updated.
+ * Non-numeric messages are ignored.
  *
  * <pre>
  * subs[0] = input topic
