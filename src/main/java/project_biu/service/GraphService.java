@@ -36,7 +36,7 @@ public class GraphService {
         if (InputSanitizer.containsScript(configContent)) {
             throw new ConfigException(ConfigError.UNSAFE_CONTENT);
         }
-        final String safeName = InputSanitizer.sanitizeFileName(fileName);
+        final String safeName = InputSanitizer.sanitizeFileName(fileName, "config.conf");
         try {
             fileRepository.save(safeName, configContent);
         } catch (RuntimeException e) {

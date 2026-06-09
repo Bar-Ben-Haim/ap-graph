@@ -98,7 +98,7 @@ public class ConfLoader implements Servlet {
 
         if (!result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
             throw new ConfigException(ConfigError.INVALID_FORMAT, "Invalid file name: "
-                    + InputSanitizer.sanitizeFileName(result.filename()));
+                    + InputSanitizer.sanitizeFileName(result.filename(), "config.conf"));
         }
 
         if (result.content() == null || result.content().isEmpty()) {
