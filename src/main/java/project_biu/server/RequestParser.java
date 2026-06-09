@@ -1,13 +1,20 @@
 package project_biu.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RequestParser {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestParser.class);
+
     private RequestParser() {
     }
 
@@ -28,7 +35,7 @@ public class RequestParser {
                 Arrays.stream(uri.substring(queryIndex + 1).split("&"))
                         .map(pair -> pair.split("=", 2))
                         .filter(kv -> kv.length > 0)
-                        .collect(Collectors.toMap(kv -> kv[0], kv -> kv.length > 1 ? kv[1] : "",
+                        .collect(Collectors.toMap(kv -> decode(kv[0]), kv -> kv.length > 1 ? decode(kv[1]) : "",
                                 (existing, _) -> existing));
         final String[] uriSegments = calculateUriSegments(uri, queryIndex);
         //noinspection StatementWithEmptyBody
@@ -73,7 +80,22 @@ public class RequestParser {
     private static void extractMetadata(String metadataLine, Map<String, String> parameters) {
         if (metadataLine != null && metadataLine.contains("=")) {
             String[] kv = metadataLine.split("=", 2);
-            if (kv.length > 0) parameters.put(kv[0], kv.length > 1 ? kv[1] : "");
+            if (kv.length > 0) parameters.put(decode(kv[0]), kv.length > 1 ? decode(kv[1]) : "");
+        }
+    }
+
+    /**
+     * Decodes the URL-encoded string using UTF-8 encoding.
+     *
+     * @param value the URL-encoded string to decode
+     * @return the decoded string, or the original string if decoding fails
+     */
+    private static String decode(String value) {
+        try {
+            return URLDecoder.decode(value, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            LOGGER.atWarn().setCause(e).log("An error has occurred while decoding {}", value);
+            return value;
         }
     }
 
