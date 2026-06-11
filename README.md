@@ -65,14 +65,14 @@ Browser ──HTTP──▶ MyHTTPServer ──▶ Servlet (controller layer)
 
 ## HTTP API
 
-| Method | Path | Servlet | Purpose |
-|--------|------|---------|---------|
-| `GET` | `/app/<file>` | `HtmlLoader` | Serve a static file from `html_files/` (e.g. `index.html`). |
-| `POST` | `/upload` | `ConfLoader` | Upload a `.conf` (multipart); deploy it; return the graph HTML (or a typed error page). |
-| `GET` | `/graph` | `GraphDisplayer` | Render the current graph, or a "no graph deployed" page. |
-| `GET` | `/publish?topic=<t>&message=<m>` | `TopicDisplayer` | Publish a message to a topic; return the topic-values table. |
-| `POST` | `/reset` | `ConfigReset` | Rebuild the active graph from its saved config (clears all topic values and agent state). |
-| `DELETE` | `/delete` | `ConfigDelete` | Remove the configuration and graph entirely (back to "nothing deployed"). |
+| Method   | Path                             | Servlet          | Purpose                                                                                   |
+|----------|----------------------------------|------------------|-------------------------------------------------------------------------------------------|
+| `GET`    | `/app/<file>`                    | `HtmlLoader`     | Serve a static file from `html_files/` (e.g. `index.html`).                               |
+| `POST`   | `/upload`                        | `ConfLoader`     | Upload a `.conf` (multipart); deploy it; return the graph HTML (or a typed error page).   |
+| `GET`    | `/graph`                         | `GraphDisplayer` | Render the current graph, or a "no graph deployed" page.                                  |
+| `GET`    | `/publish?topic=<t>&message=<m>` | `TopicDisplayer` | Publish a message to a topic; return the topic-values table.                              |
+| `POST`   | `/reset`                         | `ConfigReset`    | Rebuild the active graph from its saved config (clears all topic values and agent state). |
+| `DELETE` | `/delete`                        | `ConfigDelete`   | Remove the configuration and graph entirely (back to "nothing deployed").                 |
 
 ## Web Interface
 
@@ -136,14 +136,14 @@ inputs wait until **both** have been received before producing output.
 > not show which input/output *slot* an edge maps to, so only single-input or commutative
 > (`PlusAgent`, `MulAgent`) agents are provided.
 
-| Agent (class) | subs | pubs | Description |
-|---|---|---|---|
-| `PlusAgent` | `x, y` | `sum` | Publishes `x + y` whenever either input changes. |
-| `MulAgent` | `x, y` | `product` | Publishes `x * y` whenever either input changes. |
-| `IncAgent` | `x` | `x + 1` | Publishes the input incremented by one. |
-| `MovingAverageAgent` | `value` | `average` | Running average of the values seen so far. |
-| `MaxTrackerAgent` | `value` | `max` | Running maximum; publishes only when a new record arrives. |
-| `CounterAgent` | `trigger` | `count` | Counts every message received and publishes the count. |
+| Agent (class)        | subs      | pubs      | Description                                                |
+|----------------------|-----------|-----------|------------------------------------------------------------|
+| `PlusAgent`          | `x, y`    | `sum`     | Publishes `x + y` whenever either input changes.           |
+| `MulAgent`           | `x, y`    | `product` | Publishes `x * y` whenever either input changes.           |
+| `IncAgent`           | `x`       | `x + 1`   | Publishes the input incremented by one.                    |
+| `MovingAverageAgent` | `value`   | `average` | Running average of the values seen so far.                 |
+| `MaxTrackerAgent`    | `value`   | `max`     | Running maximum; publishes only when a new record arrives. |
+| `CounterAgent`       | `trigger` | `count`   | Counts every message received and publishes the count.     |
 
 > **Base classes (not usable directly in a `.conf`):** `BinOpAgent` applies any
 > `BinaryOperator<Double>` to two inputs (parent of `PlusAgent`/`MulAgent`); `UnaryOpAgent`
@@ -154,12 +154,12 @@ inputs wait until **both** have been received before producing output.
 1. Create a class in `project_biu.configs.agents` that `implements Agent` (or extends a base).
 2. Provide a `public MyAgent(String[] subs, String[] pubs)` constructor that subscribes to its
    inputs and registers as a publisher on its outputs.
-3. Reference it by fully-qualified class name in a `.conf`.
+3. Reference it by fully qualified class name in a `.conf`.
 
 ## Security & input handling
 
 Uploaded data is untrusted, so it is sanitized in one place — `GraphService.deploy(...)`,
-using `project_biu.utils.InputSanitizer`:
+using `project_biu.utils.FileSanitizer`:
 
 - **File names** are reduced to a safe form (directory parts stripped, unsafe characters
   replaced, leading dots removed) before being used as a storage key — defense-in-depth on
@@ -212,9 +212,7 @@ docker run -it -p 8080:8080 ap-graph
 
 ## Demo
 
-> _Demo video (≤ 5 min): TODO — add link._ Suggested slides: project & submitters,
-> background, design overview, live demo of deploy / publish / reset / delete, and
-> features beyond the minimum.
+> TODO: add demo video
 
 ## Project Structure
 
@@ -228,7 +226,7 @@ ap-graph/
 │   ├── repository/               # GraphRepository + FileRepository (and Local* impls)
 │   ├── service/                  # GraphService (deploy/reset/delete lifecycle)
 │   ├── server/                   # HTTPServer, MyHTTPServer, RequestParser
-│   │   └── reponse/              # ResponseUtils, StatusCode, MediaType
+│   │   └── response/              # ResponseUtils, StatusCode, MediaType
 │   ├── servlets/                 # Servlet + ConfLoader/ConfigReset/ConfigDelete/TopicDisplayer/GraphDisplayer/HtmlLoader
 │   ├── utils/                    # InputSanitizer
 │   └── views/                    # HtmlGraphWriter (Graph → HTML)

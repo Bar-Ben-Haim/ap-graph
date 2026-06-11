@@ -5,8 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides global, thread-safe access to the single {@link TopicManager} instance
- * used throughout the application.
+ * Provides global, thread-safe access to the single {@link TopicManager} instance.
  *
  * <p>This class acts as a singleton holder: it cannot be instantiated and simply
  * exposes the shared {@link TopicManager} via {@link #get()}. The manager keeps a

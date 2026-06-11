@@ -5,7 +5,6 @@ import project_biu.graph.ParallelAgent;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -91,12 +90,9 @@ public class GenericConfig implements Config {
         final Object instance;
         try {
             instance = constructor.newInstance(subs, pubs);
-        } catch (InvocationTargetException e) {
-            throw new ConfigException(ConfigError.AGENT_INITIALIZATION_FAILED,
-                    "Failed to initialize agent " + className + ": " + rootMessage(e.getCause()), e);
         } catch (ReflectiveOperationException e) {
             throw new ConfigException(ConfigError.AGENT_INITIALIZATION_FAILED,
-                    "Failed to initialize agent " + className + ": " + rootMessage(e), e);
+                    "Failed to initialize agent " + className, e);
         }
 
         return (Agent) instance;
@@ -104,10 +100,5 @@ public class GenericConfig implements Config {
 
     private static String[] splitTopics(String line) {
         return Arrays.stream(line.split(",")).map(String::trim).toArray(String[]::new);
-    }
-
-    private static String rootMessage(Throwable t) {
-        if (t == null) return "unknown error";
-        return t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
     }
 }

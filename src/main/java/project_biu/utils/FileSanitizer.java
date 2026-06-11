@@ -5,13 +5,13 @@ import java.util.regex.Pattern;
 /**
  * Sanitizes untrusted input received from clients (uploaded file names and contents).
  */
-public final class InputSanitizer {
+public final class FileSanitizer {
     private static final Pattern ILLEGAL_FILE_NAME_CHARS = Pattern.compile("[^A-Za-z0-9._-]");
     private static final Pattern LEADING_DOTS = Pattern.compile("^\\.+");
     private static final Pattern SCRIPT_LIKE =
             Pattern.compile("(?i)<\\s*/?\\s*script\\b|javascript:|on\\w+\\s*=|<[^>]*>");
 
-    private InputSanitizer() {
+    private FileSanitizer() {
     }
 
     /**

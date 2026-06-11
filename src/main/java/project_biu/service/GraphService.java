@@ -4,7 +4,7 @@ import project_biu.configs.*;
 import project_biu.graph.TopicManagerSingleton;
 import project_biu.repository.FileRepository;
 import project_biu.repository.GraphRepository;
-import project_biu.utils.InputSanitizer;
+import project_biu.utils.FileSanitizer;
 
 import java.nio.file.Path;
 
@@ -33,10 +33,10 @@ public class GraphService {
      * Stores the configuration under {@code fileName} and builds the graph from it.
      */
     public synchronized Graph deploy(String fileName, String configContent) {
-        if (InputSanitizer.containsScript(configContent)) {
+        if (FileSanitizer.containsScript(configContent)) {
             throw new ConfigException(ConfigError.UNSAFE_CONTENT);
         }
-        final String safeName = InputSanitizer.sanitizeFileName(fileName, "config.conf");
+        final String safeName = FileSanitizer.sanitizeFileName(fileName, "config.conf");
         try {
             fileRepository.save(safeName, configContent);
         } catch (RuntimeException e) {

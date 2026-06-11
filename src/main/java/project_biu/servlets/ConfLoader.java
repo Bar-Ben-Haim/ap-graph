@@ -8,7 +8,7 @@ import project_biu.configs.Graph;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
 import project_biu.service.GraphService;
-import project_biu.utils.InputSanitizer;
+import project_biu.utils.FileSanitizer;
 import project_biu.views.HtmlGraphWriter;
 
 import java.io.IOException;
@@ -98,7 +98,7 @@ public class ConfLoader implements Servlet {
 
         if (!result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
             throw new ConfigException(ConfigError.INVALID_FORMAT, "Invalid file name: "
-                    + InputSanitizer.sanitizeFileName(result.filename(), "config.conf"));
+                    + FileSanitizer.sanitizeFileName(result.filename(), "config.conf"));
         }
 
         if (result.content() == null || result.content().isEmpty()) {
