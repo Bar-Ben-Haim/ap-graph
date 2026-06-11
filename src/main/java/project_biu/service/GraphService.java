@@ -8,15 +8,6 @@ import project_biu.utils.FileSanitizer;
 
 import java.nio.file.Path;
 
-/**
- * Owns the lifecycle of the deployed computational graph.
- *
- * <p>A single instance is shared by the servlets, so {@link #deploy}, {@link #reset},
- * and {@link #deleteAll} all act on the same state. Each deployed configuration is stored
- * by file name in the {@link FileRepository}, which lets {@link #reset()} rebuild the
- * active graph without re-uploading. All public methods are synchronized so concurrent
- * requests cannot corrupt the shared {@link TopicManagerSingleton}.
- */
 public class GraphService {
     private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
     private final GraphRepository graphRepository;
