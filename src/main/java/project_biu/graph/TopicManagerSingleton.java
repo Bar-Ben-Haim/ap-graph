@@ -40,6 +40,10 @@ public class TopicManagerSingleton {
             return topics.values();
         }
 
+        public synchronized boolean exists(String name) {
+            return topics.containsKey(name);
+        }
+
         public synchronized void clear() {
             topics.clear();
         }
