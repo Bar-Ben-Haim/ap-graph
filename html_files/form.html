@@ -109,7 +109,7 @@
 <div class="card">
     <h2>Publish To Topic</h2>
 
-    <form action="http://localhost:8080/publish" method="get" target="tableFrame">
+    <form id="publishForm" onsubmit="return publishMessage(event)">
         <label>
             <input type="text" name="topic" placeholder="Topic name" required>
         </label>
@@ -142,6 +142,34 @@
         const stamp = '?t=' + Date.now();
         if (top.frames['graphFrame']) top.frames['graphFrame'].location.href = '/graph' + stamp;
         if (top.frames['tableFrame']) top.frames['tableFrame'].location.href = '/publish' + stamp;
+    }
+
+    // Show a popup via the top-level dashboard toast; fall back to alert() if
+    // this page is opened on its own (outside the index.html shell).
+    function notify(message, severity) {
+        const parent = window.parent;
+        if (parent && typeof parent.showToast === 'function') {
+            parent.showToast(message, severity);
+        } else {
+            alert(message);
+        }
+    }
+
+    function publishMessage(e) {
+        e.preventDefault();
+        const params = new URLSearchParams(new FormData(e.target));
+        fetch('/publish?' + params.toString())
+            .then(res => {
+                if (res.ok) {
+                    refreshFrames();
+                    return;
+                }
+                return res.json()
+                    .catch(() => 'Topic does not exist')
+                    .then(msg => notify(String(msg), 'error'));
+            })
+            .catch(() => notify('Publish failed — is the server running?', 'error'));
+        return false;
     }
 
     function resetGraph() {

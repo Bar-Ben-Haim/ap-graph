@@ -28,6 +28,11 @@ public class TopicDisplayer implements Servlet {
         final String topicName = ri.parameters().get("topic");
         final String messageVal = ri.parameters().get("message");
 
+        if (topicName != null && !topicName.isEmpty() && !TOPIC_MANAGER.exists(topicName)) {
+            responseUtils.notFound(toClient, "Topic '" + topicName + "' does not exist");
+            return;
+        }
+
         if (topicName != null && messageVal != null && !topicName.isEmpty()) {
             TOPIC_MANAGER.getTopic(topicName).publish(new Message(messageVal));
         }
