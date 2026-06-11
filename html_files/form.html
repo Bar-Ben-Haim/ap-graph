@@ -54,6 +54,30 @@
         .secondary:hover {
             background-color: #1f7d34;
         }
+
+        .danger {
+            background-color: #dc3545;
+        }
+
+        .danger:hover {
+            background-color: #b02a37;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-row button {
+            margin-top: 10px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.5;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -85,7 +109,7 @@
 <div class="card">
     <h2>Publish To Topic</h2>
 
-    <form action="http://localhost:8080/publish" method="get" target="tableFrame">
+    <form id="publishForm" onsubmit="return publishMessage(event)">
         <label>
             <input type="text" name="topic" placeholder="Topic name" required>
         </label>
@@ -97,6 +121,68 @@
         </button>
     </form>
 </div>
+
+<div class="card">
+    <h2>Graph Control</h2>
+    <div class="button-row">
+        <button type="button" onclick="resetGraph()">Reset</button>
+        <button class="danger" type="button" onclick="deleteGraph()">Delete</button>
+    </div>
+    <p class="hint">
+        <strong>Reset</strong> reloads the current configuration, clearing all topic values
+        and agent state. <strong>Delete</strong> removes the configuration entirely and returns
+        to the "no graph deployed" state.
+    </p>
+</div>
+
+<script>
+    function refreshFrames() {
+        const top = window.parent;
+        if (!top) return;
+        const stamp = '?t=' + Date.now();
+        if (top.frames['graphFrame']) top.frames['graphFrame'].location.href = '/graph' + stamp;
+        if (top.frames['tableFrame']) top.frames['tableFrame'].location.href = '/publish' + stamp;
+    }
+
+    // Show a popup via the top-level dashboard toast; fall back to alert() if
+    // this page is opened on its own (outside the index.html shell).
+    function notify(message, severity) {
+        const parent = window.parent;
+        if (parent && typeof parent.showToast === 'function') {
+            parent.showToast(message, severity);
+        } else {
+            alert(message);
+        }
+    }
+
+    function publishMessage(e) {
+        e.preventDefault();
+        const params = new URLSearchParams(new FormData(e.target));
+        fetch('/publish?' + params.toString())
+            .then(res => {
+                if (res.ok) {
+                    refreshFrames();
+                    return;
+                }
+                return res.json()
+                    .catch(() => 'Topic does not exist')
+                    .then(msg => notify(String(msg), 'error'));
+            })
+            .catch(() => notify('Publish failed — is the server running?', 'error'));
+        return false;
+    }
+
+    function resetGraph() {
+        fetch('/reset', {method: 'POST'}).catch(() => {
+        }).finally(refreshFrames);
+    }
+
+    function deleteGraph() {
+        if (!confirm('Remove the deployed configuration entirely? This cannot be undone.')) return;
+        fetch('/delete', {method: 'DELETE'}).catch(() => {
+        }).finally(refreshFrames);
+    }
+</script>
 
 </body>
 </html>

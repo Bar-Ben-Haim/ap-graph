@@ -69,6 +69,8 @@ public class ResponseUtils {
         if (body != null) {
             response.append("Content-Length: ").append(bodyBytes.length).append("\r\n");
         }
+        // Stop browsers from MIME-sniffing since writing native here
+        response.append("X-Content-Type-Options: nosniff\r\n");
         response.append("Connection: close\r\n\r\n");
 
         out.write(response.toString().getBytes(StandardCharsets.UTF_8));

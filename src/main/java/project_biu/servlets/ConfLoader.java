@@ -2,69 +2,43 @@ package project_biu.servlets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import project_biu.configs.Config;
-import project_biu.configs.GenericConfig;
+import project_biu.configs.ConfigError;
+import project_biu.configs.ConfigException;
 import project_biu.configs.Graph;
-import project_biu.graph.TopicManagerSingleton;
-import project_biu.repository.GraphRepository;
 import project_biu.server.RequestParser;
 import project_biu.server.reponse.ResponseUtils;
+import project_biu.service.GraphService;
+import project_biu.utils.FileSanitizer;
 import project_biu.views.HtmlGraphWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.UUID;
 
 public class ConfLoader implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfLoader.class);
     private static final String CONFIG_FILE_SUFFIX = ".conf";
     private final ResponseUtils responseUtils;
-    private final GraphRepository graphRepository;
-    private Config config;
+    private final GraphService graphService;
 
-    public ConfLoader(ResponseUtils responseUtils, GraphRepository graphRepository) {
+    public ConfLoader(ResponseUtils responseUtils, GraphService graphService) {
         this.responseUtils = responseUtils;
-        this.graphRepository = graphRepository;
+        this.graphService = graphService;
     }
 
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
         try {
             final MultipartResult result = parseMultipart(new String(ri.content()));
-            final boolean isValid = isMultipartValid(result, toClient);
-            if (!isValid) return;
-            if (config != null) config.close();
-            TopicManagerSingleton.get().clear();
-
-            //TODO: decide what to do with sonarcube comment
-            final Path tempConfFile = Files.createTempFile("config_", CONFIG_FILE_SUFFIX);
-            assert result != null;
-            Files.writeString(tempConfFile, result.content());
-
-            final GenericConfig genericConfig = new GenericConfig();
-            genericConfig.setConfFile(tempConfFile.toString());
-            genericConfig.create();
-            config = genericConfig;
-
-            final Graph graph = new Graph();
-            graph.createFromTopics();
-            if (graph.hasCycles()) {
-                LOGGER.info("A user requested to load a graph with cycles, sending error response");
-                responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(
-                        "CYCLES_DETECTED",
-                        "The uploaded configuration contains cyclic agent dependencies. All agents must form a directed acyclic graph (DAG)."
-                ));
-                graph.close();
-                return;
-            }
-            graphRepository.delete();
-            graphRepository.save(graph);
+            validateMultipart(result);
+            final Graph graph = graphService.deploy(result.filename(), result.content());
             responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
+        } catch (ConfigException e) {
+            LOGGER.info("Configuration rejected ({}): {}", e.getError(), e.getMessage());
+            responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(e.getError(), e.getMessage()));
         } catch (RuntimeException e) {
-            LOGGER.error("Error loading config", e);
-            responseUtils.internalServerError(toClient, e);
+            LOGGER.error("Unexpected error loading config", e);
+            responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(ConfigError.INTERNAL_ERROR));
         }
     }
 
@@ -72,7 +46,6 @@ public class ConfLoader implements Servlet {
      * Parses a multipart/form-data body, returning the filename and content
      * of the first file part.
      */
-    //TODO:change from here
     private static MultipartResult parseMultipart(String raw) {
         final String[] lines = raw.split("\n");
         if (lines.length < 1) return null;
@@ -118,30 +91,23 @@ public class ConfLoader implements Servlet {
     private record MultipartResult(String filename, String content) {
     }
 
-    private boolean isMultipartValid(MultipartResult result, OutputStream toClient) throws IOException {
-        //TODO: add logging
+    private void validateMultipart(MultipartResult result) {
         if (result == null) {
-            responseUtils.badRequest(toClient, "Could not parse multipart body");
-            return false;
+            throw new ConfigException(ConfigError.INTERNAL_ERROR);
         }
 
         if (!result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
-            responseUtils.badRequest(toClient,
-                    String.format("Invalid file type: %s, Only .conf files are accepted.", result.filename()));
-            return false;
+            throw new ConfigException(ConfigError.INVALID_FORMAT, "Invalid file name: "
+                    + FileSanitizer.sanitizeFileName(result.filename(), "config.conf"));
         }
 
         if (result.content() == null || result.content().isEmpty()) {
-            responseUtils.badRequest(toClient, "Config file is empty.");
-            return false;
+            throw new ConfigException(ConfigError.EMPTY_CONFIG);
         }
-
-        return true;
     }
 
     @Override
-    public void close() throws IOException {
-        graphRepository.delete();
-        if (config != null) config.close();
+    public void close() {
+        // Nothing to Impl
     }
 }

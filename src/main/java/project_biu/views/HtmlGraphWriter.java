@@ -1,7 +1,11 @@
 package project_biu.views;
 
+import project_biu.configs.ConfigError;
 import project_biu.configs.Graph;
 import project_biu.configs.Node;
+import project_biu.graph.Message;
+import project_biu.utils.NumberFormatter;
+import project_biu.utils.ReplaceUntrustedChars;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,9 +14,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class HtmlGraphWriter {
-    private static final Path GRAPH_HTML_SEARCH_PATH = Path.of("html_files/graph.html");
-
-    private static final Path ERROR_HTML_SEARCH_PATH = Path.of("html_files/error.html");
+    private static final Path GRAPH_HTML_PATH = Path.of("html_files/graph.html");
+    private static final Path ERROR_HTML_PATH = Path.of("html_files/error.html");
 
     private HtmlGraphWriter() {
     }
@@ -25,7 +28,7 @@ public class HtmlGraphWriter {
      */
     public static List<String> getGraphHTML(Graph graph) {
         try {
-            String html = loadHtmlFile(GRAPH_HTML_SEARCH_PATH);
+            String html = loadHtmlFile(GRAPH_HTML_PATH);
             final String nodesHtml = buildNodes(graph);
             final String edgesHtml = buildEdges(graph);
             html = html.replace("//__NODES__", nodesHtml);
@@ -51,10 +54,10 @@ public class HtmlGraphWriter {
         graph.forEach(node -> node.getEdges().forEach(edge -> builder
                 .append("{")
                 .append("from: '")
-                .append(node.getName())
+                .append(ReplaceUntrustedChars.js(node.getName()))
                 .append("', ")
                 .append("to: '")
-                .append(edge.getName())
+                .append(ReplaceUntrustedChars.js(edge.getName()))
                 .append("'")
                 .append("},\n")));
 
@@ -62,11 +65,14 @@ public class HtmlGraphWriter {
     }
 
     private static void appendTopicNode(StringBuilder builder, Node node) {
-        final String name = removePrefix(node.getName());
-        final String valueStr = (node.getMsg() != null) ? "\\n" + node.getMsg().asText : "";
+        final String name = ReplaceUntrustedChars.js(removePrefix(node.getName()));
+        final Message msg = node.getMsg();
+        final String valueStr = (msg != null)
+                ? "\\n" + ReplaceUntrustedChars.js(NumberFormatter.format(msg.asDouble, msg.asText))
+                : "";
 
         builder.append("{")
-                .append("id: '").append(node.getName()).append("', ")
+                .append("id: '").append(ReplaceUntrustedChars.js(node.getName())).append("', ")
                 .append("label: '").append(name).append(valueStr).append("', ")
                 .append("shape: 'box', ")
                 .append("color: '#007bff'")
@@ -76,10 +82,10 @@ public class HtmlGraphWriter {
     private static void appendAgentNode(StringBuilder builder, Node node) {
         builder.append("{")
                 .append("id: '")
-                .append(node.getName())
+                .append(ReplaceUntrustedChars.js(node.getName()))
                 .append("', ")
                 .append("label: '")
-                .append(removePrefix(node.getName()))
+                .append(ReplaceUntrustedChars.js(removePrefix(node.getName())))
                 .append("', ")
                 .append("shape: 'circle', ")
                 .append("color: '#28a745'")
@@ -102,23 +108,37 @@ public class HtmlGraphWriter {
     }
 
     /**
-     * Generates an error page HTML by injecting the error type and message into error.html.
+     * Generates an error page using the error's default message.
      *
-     * @param errorType    one of: NOT_LOADED, CYCLES_DETECTED, RENDER_ERROR, INTERNAL_ERROR
-     * @param errorMessage human-readable description of the error
+     * @param error the error condition to render
      * @return rendered error HTML string
      */
-    public static String getErrorHtml(String errorType, String errorMessage) {
-        try {
-            String html = loadHtmlFile(ERROR_HTML_SEARCH_PATH);
-            html = html.replace("__ERROR_TYPE__", errorType);
-            html = html.replace("__ERROR_MESSAGE__", errorMessage);
-            return html;
-        } catch (IOException | RuntimeException e) {
-            return "<html><body><h2>" + e.getClass() + "</h2><p>" + e.getMessage() + "</p></body></html>";
-        }
+    public static String getErrorHtml(ConfigError error) {
+        return getErrorHtml(error, error.defaultMessage());
     }
 
+    /**
+     * Generates an error page for the given error with a custom message. The error's
+     * {@link ConfigError#name() name}, {@link ConfigError#severity() severity}, and the
+     * message are HTML-escaped and injected into error.html, which derives the title and
+     * styling from them. This keeps {@link ConfigError} the single source of truth.
+     *
+     * @param error   the error condition to render
+     * @param message human-readable description of the error
+     * @return rendered error HTML string
+     */
+    public static String getErrorHtml(ConfigError error, String message) {
+        try {
+            String html = loadHtmlFile(ERROR_HTML_PATH);
+            html = html.replace("__ERROR_TYPE__", ReplaceUntrustedChars.html(error.name()));
+            html = html.replace("__ERROR_SEVERITY__", error.severity().name().toLowerCase());
+            html = html.replace("__ERROR_MESSAGE__", ReplaceUntrustedChars.html(message));
+            return html;
+        } catch (IOException | RuntimeException e) {
+            return "<html><body><h2>" + ReplaceUntrustedChars.html(e.getClass().getSimpleName())
+                    + "</h2><p>" + ReplaceUntrustedChars.html(e.getMessage()) + "</p></body></html>";
+        }
+    }
 
     /**
      * Loads the static graph HTML template.
@@ -141,6 +161,7 @@ public class HtmlGraphWriter {
      * @return error HTML.
      */
     private static List<String> createErrorHtml(Exception e) {
-        return List.of(getErrorHtml("RENDER_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        return List.of(getErrorHtml(ConfigError.RENDER_ERROR,
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
     }
 }

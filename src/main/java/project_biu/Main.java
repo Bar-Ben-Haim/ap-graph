@@ -2,15 +2,17 @@ package project_biu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import project_biu.repository.FileRepository;
 import project_biu.repository.GraphRepository;
+import project_biu.repository.LocalFileRepository;
 import project_biu.repository.LocalGraphRepository;
 import project_biu.server.HTTPServer;
 import project_biu.server.MyHTTPServer;
 import project_biu.server.reponse.ResponseUtils;
-import project_biu.servlets.ConfLoader;
-import project_biu.servlets.GraphDisplayer;
-import project_biu.servlets.HtmlLoader;
-import project_biu.servlets.TopicDisplayer;
+import project_biu.service.GraphService;
+import project_biu.servlets.*;
+
+import java.nio.file.Path;
 
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -19,16 +21,27 @@ public class Main {
         final HTTPServer server = new MyHTTPServer(8080, 5);
         final ResponseUtils responseUtils = new ResponseUtils();
         final GraphRepository graphRepository = new LocalGraphRepository();
+        final FileRepository fileRepository = new LocalFileRepository(Path.of("uploaded_configs"));
+        final GraphService graphService = new GraphService(graphRepository, fileRepository);
+        fileRepository.deleteAll();
 
-        server.addServlet("GET", "/publish", new TopicDisplayer(responseUtils, graphRepository));
-        server.addServlet("GET", "/graph", new GraphDisplayer(responseUtils, graphRepository));
-        server.addServlet("POST", "/upload", new ConfLoader(responseUtils, graphRepository));
+        server.addServlet("GET", "/publish", new TopicDisplayer(responseUtils, graphService));
+        server.addServlet("GET", "/graph", new GraphDisplayer(responseUtils, graphService));
+        server.addServlet("POST", "/upload", new ConfLoader(responseUtils, graphService));
+        server.addServlet("POST", "/reset", new ConfigReset(responseUtils, graphService));
+        server.addServlet("DELETE", "/delete", new ConfigDelete(responseUtils, graphService));
         server.addServlet("GET", "/app/", new HtmlLoader(responseUtils, "html_files"));
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> closeResources(server, graphService), "server-shutdown"));
         server.start();
         //noinspection ResultOfMethodCallIgnored
         System.in.read();
-        server.close();
+        closeResources(server, graphService);
         LOGGER.info("done");
+    }
+
+    private static void closeResources(HTTPServer httpServer, GraphService graphService) {
+        httpServer.close();
+        graphService.deleteAll();
     }
 }
