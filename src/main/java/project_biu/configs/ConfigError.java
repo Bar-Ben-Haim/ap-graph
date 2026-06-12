@@ -2,8 +2,7 @@ package project_biu.configs;
 
 /**
  * Lists every error condition that can occur while loading, validating, or
- * rendering a computational-graph configuration. This enum is the single source
- * of truth for error text and severity.
+ * rendering a computational-graph configuration.
  */
 public enum ConfigError {
     NOT_LOADED(Severity.INFO, "No computational graph has been deployed yet." +

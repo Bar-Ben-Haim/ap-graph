@@ -46,39 +46,6 @@ public enum StatusCode {
         return this.reasonPhrase;
     }
 
-    public boolean isSuccess() {
-        return isSuccess(this);
-    }
-
-    public boolean isClientError() {
-        return isClientError(this);
-    }
-
-    public boolean isServerError() {
-        return isServerError(this);
-    }
-
-    public static boolean isSuccess(StatusCode statusCode) {
-        return statusCode.code >= 200 && statusCode.code < 300;
-    }
-
-    public static boolean isClientError(StatusCode statusCode) {
-        return statusCode.code >= 400 && statusCode.code < 500;
-    }
-
-    public static boolean isServerError(StatusCode statusCode) {
-        return statusCode.code >= 500 && statusCode.code < 600;
-    }
-
-    public static StatusCode fromCode(int code) {
-        for (StatusCode status : StatusCode.values()) {
-            if (status.code == code) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unknown HTTP Status Code: " + code);
-    }
-
     @Override
     public String toString() {
         return this.code + " " + this.reasonPhrase;

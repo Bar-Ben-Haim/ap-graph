@@ -1,6 +1,7 @@
 package project_biu.configs;
 
 import project_biu.graph.Agent;
+import project_biu.graph.Message;
 import project_biu.graph.Topic;
 import project_biu.graph.TopicManagerSingleton;
 
@@ -71,7 +72,7 @@ public class Graph extends ArrayList<Node> implements Closeable {
             }
 
             @Override
-            public void callback(String t, project_biu.graph.Message msg) {
+            public void callback(String t, Message msg) {
                 topicNode.setMsg(msg);
             }
 

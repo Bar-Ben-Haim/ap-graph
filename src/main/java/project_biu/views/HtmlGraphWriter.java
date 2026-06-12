@@ -1,7 +1,6 @@
 package project_biu.views;
 
 import project_biu.configs.ConfigError;
-import project_biu.configs.Graph;
 import project_biu.configs.Node;
 import project_biu.graph.Message;
 import project_biu.utils.NumberFormatter;
@@ -26,7 +25,7 @@ public class HtmlGraphWriter {
      * @param graph the graph to render.
      * @return list containing the generated HTML page.
      */
-    public static List<String> getGraphHTML(Graph graph) {
+    public static List<String> getGraphHTML(List<Node> graph) {
         try {
             String html = loadHtmlFile(GRAPH_HTML_PATH);
             final String nodesHtml = buildNodes(graph);
@@ -39,7 +38,7 @@ public class HtmlGraphWriter {
         }
     }
 
-    private static String buildNodes(Graph graph) {
+    private static String buildNodes(List<Node> graph) {
         final StringBuilder builder = new StringBuilder();
         graph.forEach(node -> {
             if (node.getName().startsWith("T")) appendTopicNode(builder, node);
@@ -49,7 +48,7 @@ public class HtmlGraphWriter {
         return builder.toString();
     }
 
-    private static String buildEdges(Graph graph) {
+    private static String buildEdges(List<Node> graph) {
         final StringBuilder builder = new StringBuilder();
         graph.forEach(node -> node.getEdges().forEach(edge -> builder
                 .append("{")

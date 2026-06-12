@@ -37,14 +37,6 @@ public class ResponseUtils {
         response(out, StatusCode.NOT_FOUND, MediaType.APPLICATION_JSON, message);
     }
 
-    public void internalServerError(OutputStream out, Throwable e) throws IOException {
-        response(out, StatusCode.INTERNAL_SERVER_ERROR, MediaType.APPLICATION_JSON, e.getMessage());
-    }
-
-    public void badRequest(OutputStream out, String message) throws IOException {
-        response(out, StatusCode.BAD_REQUEST, MediaType.APPLICATION_JSON, message);
-    }
-
     public void response(OutputStream out,
                          StatusCode statusCode,
                          MediaType mediaType,
@@ -69,8 +61,6 @@ public class ResponseUtils {
         if (body != null) {
             response.append("Content-Length: ").append(bodyBytes.length).append("\r\n");
         }
-        // Stop browsers from MIME-sniffing since writing native here
-        response.append("X-Content-Type-Options: nosniff\r\n");
         response.append("Connection: close\r\n\r\n");
 
         out.write(response.toString().getBytes(StandardCharsets.UTF_8));
