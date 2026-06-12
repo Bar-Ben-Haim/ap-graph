@@ -74,8 +74,7 @@ public class HtmlGraphWriter {
         builder.append("{")
                 .append("id: '").append(ReplaceUntrustedChars.js(node.getName())).append("', ")
                 .append("label: '").append(name).append(valueStr).append("', ")
-                .append("shape: 'box', ")
-                .append("color: '#007bff'")
+                .append("group: 'topic'")
                 .append("},\n");
     }
 
@@ -87,8 +86,7 @@ public class HtmlGraphWriter {
                 .append("label: '")
                 .append(ReplaceUntrustedChars.js(removePrefix(node.getName())))
                 .append("', ")
-                .append("shape: 'circle', ")
-                .append("color: '#28a745'")
+                .append("group: 'agent'")
                 .append("},\n");
     }
 
