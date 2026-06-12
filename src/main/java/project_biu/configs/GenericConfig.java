@@ -32,7 +32,7 @@ public class GenericConfig implements Config {
         }
 
         if (lines.isEmpty()) {
-            throw new ConfigException(ConfigError.EMPTY_CONFIG); //TODO: fix - not reachable!!
+            throw new ConfigException(ConfigError.EMPTY_CONFIG);
         }
         if (lines.size() % LINES_PER_AGENT != 0) {
             throw new ConfigException(ConfigError.INVALID_FORMAT,
