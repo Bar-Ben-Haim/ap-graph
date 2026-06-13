@@ -1,7 +1,7 @@
 package project_biu.servlets;
 
 import project_biu.server.RequestParser;
-import project_biu.server.reponse.ResponseUtils;
+import project_biu.server.response.ResponseUtils;
 import project_biu.service.GraphService;
 
 import java.io.IOException;

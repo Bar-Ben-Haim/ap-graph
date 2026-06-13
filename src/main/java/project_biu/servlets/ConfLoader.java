@@ -5,15 +5,16 @@ import org.slf4j.LoggerFactory;
 import project_biu.configs.ConfigError;
 import project_biu.configs.ConfigException;
 import project_biu.configs.Graph;
+import project_biu.server.MultipartParser;
 import project_biu.server.RequestParser;
-import project_biu.server.reponse.ResponseUtils;
+import project_biu.server.response.ResponseUtils;
 import project_biu.service.GraphService;
-import project_biu.utils.FileSanitizer;
+import project_biu.utils.FileUtils;
+import project_biu.views.HtmlErrorWriter;
 import project_biu.views.HtmlGraphWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.UUID;
 
 public class ConfLoader implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfLoader.class);
@@ -29,76 +30,29 @@ public class ConfLoader implements Servlet {
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
         try {
-            final MultipartResult result = parseMultipart(new String(ri.content()));
+            final MultipartParser.MultipartResult result = MultipartParser
+                    .parseMultipart(new String(ri.content()), CONFIG_FILE_SUFFIX);
             validateMultipart(result);
             final Graph graph = graphService.deploy(result.filename(), result.content());
-            responseUtils.okHtml(toClient, String.join("\n", HtmlGraphWriter.getGraphHTML(graph)));
+            responseUtils.okHtml(toClient, String.join("\n",
+                    HtmlGraphWriter.getGraphHTML(graph, graph.getGraphFormulas())));
         } catch (ConfigException e) {
             LOGGER.info("Configuration rejected ({}): {}", e.getError(), e.getMessage());
-            responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(e.getError(), e.getMessage()));
+            responseUtils.okHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
         } catch (RuntimeException e) {
             LOGGER.error("Unexpected error loading config", e);
-            responseUtils.okHtml(toClient, HtmlGraphWriter.getErrorHtml(ConfigError.INTERNAL_ERROR));
+            responseUtils.okHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
         }
     }
 
-    /**
-     * Parses a multipart/form-data body, returning the filename and content
-     * of the first file part.
-     */
-    private static MultipartResult parseMultipart(String raw) {
-        final String[] lines = raw.split("\n");
-        if (lines.length < 1) return null;
-
-        final String boundary = lines[0].trim();
-        final StringBuilder content = new StringBuilder();
-        boolean inFilePart = false;
-        boolean pastPartHeaders = false;
-        String filename = null;
-        for (int i = 1; i < lines.length; i++) {
-            final String line = lines[i];
-            final String trimmed = line.trim();
-
-            if (trimmed.startsWith(boundary)) {
-                if (inFilePart) break;
-                continue;
-            }
-
-            if (!inFilePart) {
-                if (trimmed.toLowerCase().startsWith("content-disposition:")) {
-                    filename = extractFilename(trimmed);
-                    inFilePart = true;
-                }
-            } else if (!pastPartHeaders) {
-                if (trimmed.isEmpty()) pastPartHeaders = true;
-                // skip Content-Type and other part headers
-            } else {
-                content.append(line).append("\n");
-            }
-        }
-
-        return new MultipartResult(filename, content.toString().trim());
-    }
-
-    private static String extractFilename(String contentDisposition) {
-        final int idx = contentDisposition.indexOf("filename=\"");
-        if (idx == -1) return UUID.randomUUID() + CONFIG_FILE_SUFFIX;
-        final int start = idx + 10;
-        final int end = contentDisposition.indexOf("\"", start);
-        return end != -1 ? contentDisposition.substring(start, end) : UUID.randomUUID() + CONFIG_FILE_SUFFIX;
-    }
-
-    private record MultipartResult(String filename, String content) {
-    }
-
-    private void validateMultipart(MultipartResult result) {
+    private void validateMultipart(MultipartParser.MultipartResult result) {
         if (result == null) {
             throw new ConfigException(ConfigError.INTERNAL_ERROR);
         }
 
-        if (!result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
+        if (result.filename() == null || !result.filename().endsWith(CONFIG_FILE_SUFFIX)) {
             throw new ConfigException(ConfigError.INVALID_FORMAT, "Invalid file name: "
-                    + FileSanitizer.sanitizeFileName(result.filename(), "config.conf"));
+                    + FileUtils.sanitizeFileName(result.filename(), "config.conf"));
         }
 
         if (result.content() == null || result.content().isEmpty()) {

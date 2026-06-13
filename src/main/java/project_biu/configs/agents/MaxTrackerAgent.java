@@ -1,9 +1,6 @@
 package project_biu.configs.agents;
 
-import project_biu.graph.Agent;
-import project_biu.graph.Message;
-import project_biu.graph.Topic;
-import project_biu.graph.TopicManagerSingleton;
+import project_biu.graph.*;
 
 /**
  * Tracks the running maximum of all numeric values seen on the input topic.
@@ -15,7 +12,7 @@ import project_biu.graph.TopicManagerSingleton;
  * pubs[0] = current maximum output topic
  * </pre>
  */
-public class MaxTrackerAgent implements Agent {
+public class MaxTrackerAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;
     private final Topic outputTopic;
     private double max = Double.NEGATIVE_INFINITY;
@@ -47,6 +44,18 @@ public class MaxTrackerAgent implements Agent {
             max = value;
             outputTopic.publish(new Message(max));
         }
+    }
+
+    @Override
+    public String getMathPattern(String... inputs) {
+        if (inputs.length == 1)
+            return "MAX(" + inputs[0] + ")";
+        return getName();
+    }
+
+    @Override
+    public String getMathRepresentation() {
+        return String.format("%s = %s", outputTopic.name(), getMathPattern(inputTopic.name()));
     }
 
     @Override

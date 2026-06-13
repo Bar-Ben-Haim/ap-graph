@@ -1,13 +1,10 @@
 package project_biu.configs.agents;
 
-import project_biu.graph.Agent;
-import project_biu.graph.Message;
-import project_biu.graph.Topic;
-import project_biu.graph.TopicManagerSingleton;
+import project_biu.graph.*;
 
 import java.util.function.BinaryOperator;
 
-public class BinOpAgent implements Agent {
+public abstract class BinOpAgent implements Agent, MathematicalDescribable {
     private final String name;
     private final Topic firstTopic;
     private final Topic secondTopic;
@@ -16,11 +13,11 @@ public class BinOpAgent implements Agent {
     private double firstInput;
     private double secondInput;
 
-    public BinOpAgent(String name,
-                      String firstTopicName,
-                      String secondTopicName,
-                      String outputTopicName,
-                      BinaryOperator<Double> binaryOperator) {
+    protected BinOpAgent(String name,
+                         String firstTopicName,
+                         String secondTopicName,
+                         String outputTopicName,
+                         BinaryOperator<Double> binaryOperator) {
         final TopicManagerSingleton.TopicManager topicManager = TopicManagerSingleton.get();
         this.name = name;
         this.firstTopic = topicManager.getTopic(firstTopicName);
@@ -55,6 +52,11 @@ public class BinOpAgent implements Agent {
         if (!Double.isNaN(firstInput) && !Double.isNaN(secondInput)) {
             outputTopic.publish(new Message(binaryOperator.apply(firstInput, secondInput)));
         }
+    }
+
+    @Override
+    public String getMathRepresentation() {
+        return String.format("%s = %s", outputTopic.name(), getMathPattern(firstTopic.name(), secondTopic.name()));
     }
 
     @Override

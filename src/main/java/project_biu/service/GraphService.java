@@ -1,14 +1,18 @@
 package project_biu.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import project_biu.configs.*;
 import project_biu.graph.TopicManagerSingleton;
 import project_biu.repository.FileRepository;
 import project_biu.repository.GraphRepository;
-import project_biu.utils.FileSanitizer;
+import project_biu.utils.FileUtils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 public class GraphService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GraphService.class);
     private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
     private final GraphRepository graphRepository;
     private final FileRepository fileRepository;
@@ -24,16 +28,16 @@ public class GraphService {
      * Stores the configuration under {@code fileName} and builds the graph from it.
      */
     public synchronized Graph deploy(String fileName, String configContent) {
-        if (FileSanitizer.containsScript(configContent)) {
+        if (FileUtils.containsScript(configContent)) {
             throw new ConfigException(ConfigError.UNSAFE_CONTENT);
         }
-        final String safeName = FileSanitizer.sanitizeFileName(fileName, "config.conf");
+        final String safeName = FileUtils.sanitizeFileName(fileName, "config.conf");
         try {
             fileRepository.save(safeName, configContent);
-        } catch (RuntimeException e) {
-            throw new ConfigException(ConfigError.FILE_ERROR,
-                    "Could not save the configuration: " + e.getMessage(), e);
+        } catch (RuntimeException | IOException e) {
+            throw new ConfigException(ConfigError.FILE_ERROR, "Could not save the configuration: " + e.getMessage(), e);
         }
+
         activeConfigName = safeName;
         return build();
     }
@@ -56,19 +60,27 @@ public class GraphService {
      * Tears down the graph and removes <em>every</em> stored configuration file.
      */
     public synchronized void deleteAll() {
-        releaseGraph();
-        fileRepository.deleteAll();
-        activeConfigName = null;
+        try {
+            releaseGraph();
+            fileRepository.deleteAll();
+            activeConfigName = null;
+        } catch (IOException | RuntimeException e) {
+            LOGGER.error("Could not delete all configuration files", e);
+        }
     }
 
     /**
      * Tears down the graph and removes only the active configuration file.
      */
     public synchronized void deleteActiveConfig() {
-        releaseGraph();
-        if (activeConfigName != null) {
-            fileRepository.delete(activeConfigName);
-            activeConfigName = null;
+        try {
+            releaseGraph();
+            if (activeConfigName != null) {
+                fileRepository.delete(activeConfigName);
+                activeConfigName = null;
+            }
+        } catch (IOException | RuntimeException e) {
+            LOGGER.error("Could not delete the active config file", e);
         }
     }
 
@@ -80,7 +92,7 @@ public class GraphService {
                         "Configuration file is not accessible: " + activeConfigName));
 
         final GenericConfig genericConfig = new GenericConfig();
-        genericConfig.setConfFile(configPath.toString());
+        genericConfig.setConfFile(configPath);
         genericConfig.create();
         config = genericConfig;
 

@@ -8,18 +8,18 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class RequestParser {
+public final class RequestParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestParser.class);
 
     private RequestParser() {
     }
 
     public static RequestInfo parseRequest(BufferedReader reader) throws IOException {
-        String requestLine = reader.readLine();
+        final String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
             return null;
         }
@@ -28,53 +28,79 @@ public class RequestParser {
         if (requestParts.length < 2) {
             return null;
         }
+
         final String httpCommand = requestParts[0];
         final String uri = requestParts[1];
         final int queryIndex = uri.indexOf('?');
-        final Map<String, String> parameters = (queryIndex == -1) ? new HashMap<>() :
-                Arrays.stream(uri.substring(queryIndex + 1).split("&"))
-                        .map(pair -> pair.split("=", 2))
-                        .filter(kv -> kv.length > 0)
-                        .collect(Collectors.toMap(kv -> decode(kv[0]), kv -> kv.length > 1 ? decode(kv[1]) : "",
-                                (existing, _) -> existing));
+        final Map<String, String> parameters = parseQueryParameters(uri, queryIndex);
         final String[] uriSegments = calculateUriSegments(uri, queryIndex);
+
+        skipHeaders(reader);
+        final byte[] content = parseBody(reader, parameters);
+
+        return new RequestInfo(httpCommand, uri, uriSegments, parameters, content);
+    }
+
+    private static Map<String, String> parseQueryParameters(String uri, int queryIndex) {
+        if (queryIndex == -1) {
+            return Map.of();
+        }
+        return Arrays.stream(uri.substring(queryIndex + 1).split("&"))
+                .map(pair -> pair.split("=", 2))
+                .filter(kv -> kv.length > 0)
+                .collect(Collectors.toMap(kv -> decode(kv[0]),
+                        kv -> kv.length > 1 ? decode(kv[1]) : "", (existing, _) -> existing));
+    }
+
+    private static void skipHeaders(BufferedReader reader) throws IOException {
+        String headerLine;
         //noinspection StatementWithEmptyBody
-        while ((requestLine = reader.readLine()) != null && !requestLine.isEmpty()) {
-            // This is a header line, we will ignore them
+        while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
+            // Header lines are intentionally ignored.
         }
+    }
 
-        boolean metadataPhase = true;
-        boolean isMultipart = false;
+    private static byte[] parseBody(BufferedReader reader, Map<String, String> parameters) throws IOException {
         final StringBuilder contentBuilder = new StringBuilder();
+        final BodyParseState state = new BodyParseState();
         String line;
-        while (reader.ready() && (line = reader.readLine()) != null) {
+        while (state.reading && reader.ready() && (line = reader.readLine()) != null) {
             if (line.isEmpty()) {
-                if (metadataPhase) {
-                    metadataPhase = false;
-                    continue;
-                }
-                // Multipart bodies have empty lines inside them (between part headers and content).
-                // For regular payloads we keep the original behavior: stop on empty line.
-                if (isMultipart) {
-                    contentBuilder.append("\n");
-                    continue;
-                }
-                break;
-            }
-
-            if (metadataPhase && line.contains("=")) {
-                extractMetadata(line, parameters);
+                handleEmptyLine(state, contentBuilder);
             } else {
-                // Detect multipart: boundary lines start with '--'
-                if (metadataPhase && line.startsWith("--")) {
-                    isMultipart = true;
-                }
-                metadataPhase = false;
-                contentBuilder.append(line).append("\n");
+                handleContentLine(line, parameters, contentBuilder, state);
             }
         }
+        return contentBuilder.toString().getBytes();
+    }
 
-        return new RequestInfo(httpCommand, uri, uriSegments, parameters, contentBuilder.toString().getBytes());
+    private static void handleEmptyLine(BodyParseState state, StringBuilder contentBuilder) {
+        if (state.metadataPhase) {
+            // The empty line marks the end of the metadata section.
+            state.metadataPhase = false;
+        } else if (state.isMultipart) {
+            // Multipart bodies have empty lines inside them (between part headers and content).
+            contentBuilder.append("\n");
+        } else {
+            state.reading = false;
+        }
+    }
+
+    private static void handleContentLine(String line,
+                                          Map<String, String> parameters,
+                                          StringBuilder contentBuilder,
+                                          BodyParseState state) {
+        if (state.metadataPhase && line.contains("=")) {
+            extractMetadata(line, parameters);
+            return;
+        }
+
+        if (state.metadataPhase && line.startsWith("--")) {
+            state.isMultipart = true;
+        }
+
+        state.metadataPhase = false;
+        contentBuilder.append(line).append("\n");
     }
 
     private static void extractMetadata(String metadataLine, Map<String, String> parameters) {
@@ -107,6 +133,15 @@ public class RequestParser {
     }
 
     /**
+     * State used while parsing the body of a request.
+     */
+    private static final class BodyParseState {
+        private boolean metadataPhase = true;
+        private boolean isMultipart = false;
+        private boolean reading = true;
+    }
+
+    /**
      * A basic pojo for holding request info.
      *
      * @param httpCommand the http command (GET, POST, etc.)
@@ -120,5 +155,31 @@ public class RequestParser {
                               String[] uriSegments,
                               Map<String, String> parameters,
                               byte[] content) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            RequestInfo that = (RequestInfo) o;
+            return Objects.equals(uri, that.uri) &&
+                    Objects.deepEquals(content, that.content) &&
+                    Objects.equals(httpCommand, that.httpCommand) &&
+                    Objects.deepEquals(uriSegments, that.uriSegments) &&
+                    Objects.equals(parameters, that.parameters);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(httpCommand, uri, Arrays.hashCode(uriSegments), parameters, Arrays.hashCode(content));
+        }
+
+        @Override
+        public String toString() {
+            return "RequestInfo{" +
+                    "httpCommand='" + httpCommand + '\'' +
+                    ", uri='" + uri + '\'' +
+                    ", uriSegments=" + Arrays.toString(uriSegments) +
+                    ", parameters=" + parameters +
+                    ", content=" + Arrays.toString(content) +
+                    '}';
+        }
     }
 }

@@ -44,6 +44,12 @@
             user-select: none;
         }
 
+        #legend hr {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 10px 0;
+        }
+
         #legend h3 {
             margin: 0 0 10px;
             font-size: 13px;
@@ -86,6 +92,12 @@
     <h3>Legend</h3>
     <div class="legend-item"><span class="swatch agent"></span> Agent</div>
     <div class="legend-item"><span class="swatch topic"></span> Topic</div>
+
+    <hr>
+    <h3>Graph simplified Formulas</h3>
+    <div class="formula-list">
+        //__FORMULAS__
+    </div>
 </div>
 
 <div id="graph"></div>
@@ -143,19 +155,19 @@
                 color: {
                     background: '#6366f1',
                     border: '#4338ca',
-                    highlight: { background: '#818cf8', border: '#4338ca' },
-                    hover: { background: '#818cf8', border: '#4338ca' }
+                    highlight: {background: '#818cf8', border: '#4338ca'},
+                    hover: {background: '#818cf8', border: '#4338ca'}
                 }
             },
             topic: {
                 shape: 'box',
                 margin: 12,
-                shapeProperties: { borderRadius: 8 },
+                shapeProperties: {borderRadius: 8},
                 color: {
                     background: '#10b981',
                     border: '#059669',
-                    highlight: { background: '#34d399', border: '#059669' },
-                    hover: { background: '#34d399', border: '#059669' }
+                    highlight: {background: '#34d399', border: '#059669'},
+                    hover: {background: '#34d399', border: '#059669'}
                 }
             }
         },

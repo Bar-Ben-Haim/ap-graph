@@ -1,4 +1,4 @@
-package project_biu.server.reponse;
+package project_biu.server.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

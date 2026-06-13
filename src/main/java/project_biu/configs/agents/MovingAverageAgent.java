@@ -1,9 +1,6 @@
 package project_biu.configs.agents;
 
-import project_biu.graph.Agent;
-import project_biu.graph.Message;
-import project_biu.graph.Topic;
-import project_biu.graph.TopicManagerSingleton;
+import project_biu.graph.*;
 
 /**
  * Computes a moving average of the input numeric values.
@@ -15,7 +12,7 @@ import project_biu.graph.TopicManagerSingleton;
  * pubs[0] = moving average output topic
  * </pre>
  */
-public class MovingAverageAgent implements Agent {
+public class MovingAverageAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;
     private final Topic outputTopic;
     private int messagesCounter = 0;
@@ -54,5 +51,17 @@ public class MovingAverageAgent implements Agent {
     public void close() {
         inputTopic.unsubscribe(this);
         outputTopic.removePublisher(this);
+    }
+
+    @Override
+    public String getMathPattern(String... inputs) {
+        if (inputs.length == 1)
+            return "AVG(" + inputs[0] + ")";
+        return getName();
+    }
+
+    @Override
+    public String getMathRepresentation() {
+        return String.format("%s = %s", outputTopic.name(), getMathPattern(inputTopic.name()));
     }
 }

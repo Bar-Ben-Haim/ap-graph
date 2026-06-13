@@ -7,14 +7,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class Node {
     private String name;
-    private List<Node> edges = new ArrayList<>();
+    //Edges to the parent nodes
+    private final List<Node> outEdges;
+    //Edges to the son's nodes
+    private final List<Node> inEdges;
     private Message msg;
+    private final List<String> mathematicalDescription;
 
     public Node(String name) {
         this.name = name;
+        this.mathematicalDescription = new ArrayList<>();
+        this.outEdges = new ArrayList<>();
+        this.inEdges = new ArrayList<>();
+    }
+
+    public Node(String name, List<String> mathematicalDescription) {
+        this.name = name;
+        this.mathematicalDescription = mathematicalDescription;
+        this.outEdges = new ArrayList<>();
+        this.inEdges = new ArrayList<>();
     }
 
     public String getName() {
@@ -25,12 +38,20 @@ public class Node {
         this.name = name;
     }
 
-    public List<Node> getEdges() {
-        return edges;
+    public List<Node> getOutEdges() {
+        return outEdges;
     }
 
-    public void setEdges(List<Node> edges) {
-        this.edges = edges;
+    public void addOutEdge(Node node) {
+        outEdges.add(node);
+    }
+
+    public List<Node> getInEdges() {
+        return inEdges;
+    }
+
+    public void addInEdge(Node node) {
+        inEdges.add(node);
     }
 
     public Message getMsg() {
@@ -41,12 +62,20 @@ public class Node {
         this.msg = msg;
     }
 
-    public void addEdge(Node node) {
-        edges.add(node);
+    public List<String> getMathematicalDescription() {
+        return mathematicalDescription;
+    }
+
+    public boolean isRoot() {
+        return outEdges.isEmpty();
+    }
+
+    public boolean isLeaf() {
+        return inEdges.isEmpty();
     }
 
     public boolean hasCycles() {
-        return edges.stream().anyMatch(n -> n.hasNodeReference(this, n, new HashSet<>()));
+        return outEdges.stream().anyMatch(n -> n.hasNodeReference(this, n, new HashSet<>()));
     }
 
     /**
@@ -60,6 +89,6 @@ public class Node {
     private boolean hasNodeReference(Node parentNode, Node edgeNode, Set<Node> visited) {
         if (parentNode == edgeNode) return true;
         if (!visited.add(edgeNode)) return false;
-        return edgeNode.getEdges().stream().anyMatch(node -> hasNodeReference(parentNode, node, visited));
+        return edgeNode.getOutEdges().stream().anyMatch(node -> hasNodeReference(parentNode, node, visited));
     }
 }

@@ -1,20 +1,19 @@
 package project_biu.views;
 
 import project_biu.configs.ConfigError;
+import project_biu.configs.ConfigException;
 import project_biu.configs.Node;
 import project_biu.graph.Message;
+import project_biu.utils.FileUtils;
 import project_biu.utils.NumberFormatter;
 import project_biu.utils.ReplaceUntrustedChars;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 public class HtmlGraphWriter {
     private static final Path GRAPH_HTML_PATH = Path.of("html_files/graph.html");
-    private static final Path ERROR_HTML_PATH = Path.of("html_files/error.html");
 
     private HtmlGraphWriter() {
     }
@@ -25,16 +24,16 @@ public class HtmlGraphWriter {
      * @param graph the graph to render.
      * @return list containing the generated HTML page.
      */
-    public static List<String> getGraphHTML(List<Node> graph) {
+    public static List<String> getGraphHTML(List<Node> graph, List<String> formulas) {
         try {
-            String html = loadHtmlFile(GRAPH_HTML_PATH);
-            final String nodesHtml = buildNodes(graph);
-            final String edgesHtml = buildEdges(graph);
-            html = html.replace("//__NODES__", nodesHtml);
-            html = html.replace("//__EDGES__", edgesHtml);
+            String html = FileUtils.readFileContent(GRAPH_HTML_PATH).orElseThrow(() ->
+                    new ConfigException(ConfigError.INTERNAL_ERROR, "Could not load HTML file: " + GRAPH_HTML_PATH));
+            html = html.replace("//__NODES__", buildNodes(graph));
+            html = html.replace("//__EDGES__", buildEdges(graph));
+            html = html.replace("//__FORMULAS__", buildFormulas(formulas));
             return List.of(html);
-        } catch (Exception e) {
-            return createErrorHtml(e);
+        } catch (RuntimeException | IOException e) {
+            return HtmlErrorWriter.createErrorHtml(e);
         }
     }
 
@@ -50,13 +49,13 @@ public class HtmlGraphWriter {
 
     private static String buildEdges(List<Node> graph) {
         final StringBuilder builder = new StringBuilder();
-        graph.forEach(node -> node.getEdges().forEach(edge -> builder
+        graph.forEach(node -> node.getOutEdges().forEach(edge -> builder
                 .append("{")
                 .append("from: '")
-                .append(ReplaceUntrustedChars.js(node.getName()))
+                .append(node)
                 .append("', ")
                 .append("to: '")
-                .append(ReplaceUntrustedChars.js(edge.getName()))
+                .append(edge)
                 .append("'")
                 .append("},\n")));
 
@@ -66,24 +65,29 @@ public class HtmlGraphWriter {
     private static void appendTopicNode(StringBuilder builder, Node node) {
         final String name = ReplaceUntrustedChars.js(removePrefix(node.getName()));
         final Message msg = node.getMsg();
-        final String valueStr = (msg != null)
-                ? "\\n" + ReplaceUntrustedChars.js(NumberFormatter.format(msg.asDouble, msg.asText))
-                : "";
+        final String valueStr = msg != null ?
+                "\\n" + ReplaceUntrustedChars.js(NumberFormatter.format(msg.asDouble, msg.asText)) :
+                "";
 
         builder.append("{")
-                .append("id: '").append(ReplaceUntrustedChars.js(node.getName())).append("', ")
-                .append("label: '").append(name).append(valueStr).append("', ")
+                .append("id: '").append(node).append("', ")
+                .append("label: '").append(name)
+                .append(valueStr).append("', ")
                 .append("group: 'topic'")
                 .append("},\n");
     }
 
     private static void appendAgentNode(StringBuilder builder, Node node) {
+        String label = ReplaceUntrustedChars.js(removePrefix(node.getName()));
+        if (!node.getMathematicalDescription().isEmpty())
+            label += "\\n\\n" + ReplaceUntrustedChars.js(node.getMathematicalDescription().getFirst());
+
         builder.append("{")
                 .append("id: '")
-                .append(ReplaceUntrustedChars.js(node.getName()))
+                .append(node)
                 .append("', ")
                 .append("label: '")
-                .append(ReplaceUntrustedChars.js(removePrefix(node.getName())))
+                .append(label)
                 .append("', ")
                 .append("group: 'agent'")
                 .append("},\n");
@@ -105,60 +109,19 @@ public class HtmlGraphWriter {
     }
 
     /**
-     * Generates an error page using the error's default message.
+     * Builds the HTML for the formulas.
      *
-     * @param error the error condition to render
-     * @return rendered error HTML string
+     * @param formulas the formulas to display
+     * @return the HTML for the formulas
      */
-    public static String getErrorHtml(ConfigError error) {
-        return getErrorHtml(error, error.defaultMessage());
-    }
+    private static String buildFormulas(List<String> formulas) {
+        if (formulas.isEmpty()) return "<span style='color:#94a3b8'>None</span>";
 
-    /**
-     * Generates an error page for the given error with a custom message. The error's
-     * {@link ConfigError#name() name}, {@link ConfigError#severity() severity}, and the
-     * message are HTML-escaped and injected into error.html, which derives the title and
-     * styling from them. This keeps {@link ConfigError} the single source of truth.
-     *
-     * @param error   the error condition to render
-     * @param message human-readable description of the error
-     * @return rendered error HTML string
-     */
-    public static String getErrorHtml(ConfigError error, String message) {
-        try {
-            String html = loadHtmlFile(ERROR_HTML_PATH);
-            html = html.replace("__ERROR_TYPE__", ReplaceUntrustedChars.html(error.name()));
-            html = html.replace("__ERROR_SEVERITY__", error.severity().name().toLowerCase());
-            html = html.replace("__ERROR_MESSAGE__", ReplaceUntrustedChars.html(message));
-            return html;
-        } catch (IOException | RuntimeException e) {
-            return "<html><body><h2>" + ReplaceUntrustedChars.html(e.getClass().getSimpleName())
-                    + "</h2><p>" + ReplaceUntrustedChars.html(e.getMessage()) + "</p></body></html>";
-        }
-    }
-
-    /**
-     * Loads the static graph HTML template.
-     *
-     * @return template content.
-     * @throws IOException if loading fails.
-     */
-    private static String loadHtmlFile(Path filePath) throws IOException {
-        if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
-            return Files.readString(filePath, StandardCharsets.UTF_8);
-        }
-        //TODO: change to logging and return normal html
-        throw new RuntimeException("HTML template not found in or is a directory: " + filePath);
-    }
-
-    /**
-     * Creates an HTML error page.
-     *
-     * @param e the exception.
-     * @return error HTML.
-     */
-    private static List<String> createErrorHtml(Exception e) {
-        return List.of(getErrorHtml(ConfigError.RENDER_ERROR,
-                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        final StringBuilder builder = new StringBuilder();
+        formulas.forEach(formula -> builder
+                .append("<div class='formula-item'>")
+                .append(ReplaceUntrustedChars.html(formula))
+                .append("</div>\n"));
+        return builder.toString();
     }
 }

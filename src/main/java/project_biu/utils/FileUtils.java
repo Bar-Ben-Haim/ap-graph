@@ -1,17 +1,22 @@
 package project_biu.utils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * Sanitizes untrusted input received from clients (uploaded file names and contents).
  */
-public final class FileSanitizer {
+public final class FileUtils {
     private static final Pattern ILLEGAL_FILE_NAME_CHARS = Pattern.compile("[^A-Za-z0-9._-]");
     private static final Pattern LEADING_DOTS = Pattern.compile("^\\.+");
     private static final Pattern SCRIPT_LIKE =
             Pattern.compile("(?i)<\\s*/?\\s*script\\b|javascript:|on\\w+\\s*=|<[^>]*>");
 
-    private FileSanitizer() {
+    private FileUtils() {
     }
 
     /**
@@ -30,6 +35,20 @@ public final class FileSanitizer {
         name = ILLEGAL_FILE_NAME_CHARS.matcher(name).replaceAll("_");
         name = LEADING_DOTS.matcher(name).replaceAll("");
         return name.isBlank() ? defaultName : name;
+    }
+
+    /**
+     * Reads all the content of a file as a string.
+     *
+     * @param path the path to the file
+     * @return the content of the file as a string, or an empty optional if the file does not exist or is a directory
+     * @throws IOException if an I/O error occurs while reading the file
+     */
+    public static Optional<String> readFileContent(Path path) throws IOException {
+        if (Files.exists(path) && !Files.isDirectory(path)) {
+            return Optional.of(Files.readString(path, StandardCharsets.UTF_8));
+        }
+        return Optional.empty();
     }
 
     /**

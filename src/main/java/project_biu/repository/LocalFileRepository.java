@@ -1,7 +1,6 @@
 package project_biu.repository;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -15,24 +14,17 @@ import java.util.stream.Stream;
 public class LocalFileRepository implements FileRepository {
     private final Path baseDirectory;
 
-    public LocalFileRepository(Path baseDirectory) {
+    public LocalFileRepository(Path baseDirectory) throws IOException {
         this.baseDirectory = baseDirectory.toAbsolutePath().normalize();
-        try {
-            Files.createDirectories(this.baseDirectory);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not create storage directory: " + this.baseDirectory, e);
-        }
+        Files.createDirectories(this.baseDirectory);
     }
 
     @Override
-    public synchronized void save(String fileName, String content) {
-        try {
-            final Path target = resolve(fileName).orElseThrow(() -> new RuntimeException("Could not resolve file: " + fileName));
-            Files.createDirectories(baseDirectory);
-            Files.writeString(target, content);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not save file: " + fileName, e);
-        }
+    public synchronized void save(String fileName, String content) throws IOException {
+        final Path target = resolve(fileName).orElseThrow(() -> new RuntimeException("Could not resolve file: " + fileName));
+        Files.createDirectories(baseDirectory);
+        Files.writeString(target, content);
+
     }
 
     @Override
@@ -46,31 +38,27 @@ public class LocalFileRepository implements FileRepository {
     }
 
     @Override
-    public synchronized List<String> getAll() {
+    public synchronized List<String> getAll() throws IOException {
         if (!Files.isDirectory(baseDirectory)) {
             return List.of();
         }
         try (Stream<Path> files = Files.list(baseDirectory)) {
             return files.filter(Files::isRegularFile).map(path -> path.getFileName().toString()).toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not list files in " + baseDirectory, e);
         }
     }
 
     @Override
-    public synchronized void delete(String fileName) {
-        try {
-            final Optional<Path> resolved = resolve(fileName);
-            if (resolved.isPresent())
-                Files.deleteIfExists(resolved.get());
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not delete file: " + fileName, e);
-        }
+    public synchronized void delete(String fileName) throws IOException {
+        final Optional<Path> resolved = resolve(fileName);
+        if (resolved.isPresent())
+            Files.deleteIfExists(resolved.get());
     }
 
     @Override
-    public synchronized void deleteAll() {
-        getAll().forEach(this::delete);
+    public synchronized void deleteAll() throws IOException {
+        for (String fileName : getAll()) {
+            delete(fileName);
+        }
     }
 
     /**

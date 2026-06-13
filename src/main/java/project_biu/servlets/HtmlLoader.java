@@ -3,13 +3,14 @@ package project_biu.servlets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import project_biu.server.RequestParser;
-import project_biu.server.reponse.ResponseUtils;
+import project_biu.server.response.ResponseUtils;
+import project_biu.utils.FileUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 public class HtmlLoader implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(HtmlLoader.class);
@@ -27,11 +28,11 @@ public class HtmlLoader implements Servlet {
         if (segments.length == 0)
             return;
 
-        final String filename = segments[segments.length - 1];
-        final Path filePath = Paths.get(htmlFilesPath, filename);
+        final Path filePath = Paths.get(htmlFilesPath, segments[segments.length - 1]);
+        final Optional<String> fileContent = FileUtils.readFileContent(filePath);
 
-        if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
-            responseUtils.okHtml(toClient, Files.readAllBytes(filePath));
+        if (fileContent.isPresent()) {
+            responseUtils.okHtml(toClient, fileContent.get().getBytes());
         } else {
             LOGGER.warn("An html file not found: {}", filePath);
             responseUtils.notFound(toClient);

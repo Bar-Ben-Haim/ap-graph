@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -54,18 +55,26 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             server.setSoTimeout(1000);
 
             while (!stop) {
-                try {
-                    final Socket socket = server.accept();
-                    executorService.submit(() -> handleClient(socket));
-                } catch (SocketTimeoutException _) {
-                    // Expected every 1 second
-                } catch (IOException e) {
-                    if (!stop)
-                        LOGGER.error("Error accepting client connection", e);
-                }
+                handleServerRequest(server);
             }
         } catch (IOException e) {
             LOGGER.error("Error while running the server socket", e);
+            System.exit(1);
+        }
+    }
+
+    private void handleServerRequest(ServerSocket server) {
+        try {
+            final Socket socket = server.accept();
+            socket.setSoTimeout(3000);
+            executorService.submit(() -> handleClient(socket));
+        } catch (SocketTimeoutException _) {
+            // Expected every 1 second
+        } catch (BindException e) {
+            if (!stop) LOGGER.error("Error accepting client connection", e);
+            System.exit(1);
+        } catch (IOException e) {
+            if (!stop) LOGGER.error("Error accepting client connection", e);
         }
     }
 

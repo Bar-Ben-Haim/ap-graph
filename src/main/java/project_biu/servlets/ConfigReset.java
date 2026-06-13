@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import project_biu.configs.ConfigException;
 import project_biu.server.RequestParser;
-import project_biu.server.reponse.ResponseUtils;
+import project_biu.server.response.ResponseUtils;
 import project_biu.service.GraphService;
 
 import java.io.IOException;
