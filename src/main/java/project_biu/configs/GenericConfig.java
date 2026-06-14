@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+/**
+ * The GenericConfig class is an implementation of the {@link Config} interface.<p>
+ * It is responsible for managing agent configurations loaded from a file,
+ * performing validation, starting agents dynamically (reflection).
+ */
 public class GenericConfig implements Config {
     private static final int LINES_PER_AGENT = 3;
     private Path confFile;

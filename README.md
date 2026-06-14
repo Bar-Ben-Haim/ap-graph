@@ -37,7 +37,7 @@ mvn clean install
 This produces a shaded (fat) jar at `target/ap-graph-1.0-SNAPSHOT.jar`
 (main class `project_biu.Main`).
 
-### Run
+### Run (locally)
 
 > Run from the **project root**, because the server loads `html_files/` and writes
 > `uploaded_configs/` relative to the working directory.
@@ -46,7 +46,7 @@ This produces a shaded (fat) jar at `target/ap-graph-1.0-SNAPSHOT.jar`
 java -jar target/ap-graph-1.0-SNAPSHOT.jar
 ```
 
-The server starts on port **8080**. Run interactively, it stays up until you press
+The server starts on port **8080**. It stays up until you press
 **any char key (but -1)** in the terminal, then shuts down.
 When stdin is closed (For exmaple when running in a container) it instead blocks on
 a `CountDownLatch` and keeps serving until shutdown, when the hook handles the closure
@@ -63,6 +63,13 @@ the `CountDownLatch` keep-alive), so stop it with `docker stop`:
 docker build -t ap-graph .
 docker run -p 8080:8080 ap-graph
 ```
+
+## Javadocs & API
+
+This project is documented with [Javadocs](http://localhost:63342/ap-graph/javadoc/index.html),
+you can use the link to view and learn about the API of this project.<p>
+Try to create your own server and servlets with the libraries and interfaces
+of this project.
 
 ## Demo
 
