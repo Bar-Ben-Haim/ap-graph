@@ -7,6 +7,12 @@
     <title>Forms</title>
 
     <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -24,6 +30,10 @@
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card label {
+            display: block;
         }
 
         input,
@@ -85,7 +95,7 @@
 <div class="card">
     <h2>Deploy Configuration</h2>
 
-    <form id="deployForm" action="http://localhost:8080/upload" method="post"
+    <form id="deployForm" action="/upload" method="post"
           enctype="multipart/form-data" target="graphFrame"
           onsubmit="return validateConfFile()">
         <input type="file" id="configFile" name="file" accept=".conf" required>
