@@ -40,6 +40,14 @@ public class ResponseUtils {
         response(out, StatusCode.NOT_FOUND, MediaType.APPLICATION_JSON, message);
     }
 
+    public void badRequestHtml(OutputStream out, Object body) throws IOException {
+        response(out, StatusCode.BAD_REQUEST, MediaType.TEXT_HTML, body);
+    }
+
+    public void internalServerErrorHtml(OutputStream out, Object body) throws IOException {
+        response(out, StatusCode.INTERNAL_SERVER_ERROR, MediaType.TEXT_HTML, body);
+    }
+
     private void response(OutputStream out,
                           StatusCode statusCode,
                           MediaType mediaType,

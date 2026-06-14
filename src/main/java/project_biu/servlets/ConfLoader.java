@@ -42,10 +42,10 @@ public class ConfLoader implements Servlet {
                     HtmlGraphWriter.getGraphHTML(graph, graph.getGraphFormulas())));
         } catch (ConfigException e) {
             LOGGER.info("Configuration rejected ({}): {}", e.getError(), e.getMessage());
-            responseUtils.okHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
+            responseUtils.badRequestHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
         } catch (RuntimeException e) {
             LOGGER.error("Unexpected error loading config", e);
-            responseUtils.okHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
+            responseUtils.internalServerErrorHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
         }
     }
 

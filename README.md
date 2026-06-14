@@ -21,9 +21,11 @@ The graph must be a **DAG** — A graph with cycles is rejected.
 
 ## Live now
 
-> The project is now running on cloud **Railway**
-> with automatic commit to branch `main` (since having Dockerfile):
-> <https://ap-graph-production.up.railway.app/app/index.html>
+> - The project is now running on cloud **Railway** and deployed
+    automatically commit to branch `main` (since having Dockerfile):
+    <https://ap-graph-production.up.railway.app/app/index.html>
+> - The project is running in serverless mode to cut expenses, so it may take a while to
+    respond to the first request.
 
 ## Requirements
 

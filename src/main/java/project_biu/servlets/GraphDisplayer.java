@@ -39,10 +39,10 @@ public class GraphDisplayer implements Servlet {
             }
         } catch (ConfigException e) {
             LOGGER.info("Error while getting graph to display", e);
-            responseUtils.okHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
+            responseUtils.badRequestHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
         } catch (RuntimeException e) {
             LOGGER.error("Error while getting graph to display", e);
-            responseUtils.okHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
+            responseUtils.internalServerErrorHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
         }
     }
 

@@ -178,6 +178,102 @@
             pointer-events: none;
         }
 
+        .toast {
+            pointer-events: auto; /* container is none; re-enable so the close button works */
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--surface);
+            color: #1e293b;
+            border-radius: 8px;
+            border-left: 4px solid var(--muted);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+            font-size: 14px;
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateX(12px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .toast-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-leaving {
+            opacity: 0;
+            transform: translateX(12px);
+        }
+
+        .toast-icon {
+            flex: 0 0 auto;
+            width: 20px;
+            height: 20px;
+            margin-top: 1px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            background: var(--muted);
+        }
+
+        .toast-message {
+            flex: 1 1 auto;
+            word-break: break-word;
+        }
+
+        .toast-close {
+            flex: 0 0 auto;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 2px;
+        }
+
+        .toast-close:hover {
+            color: #1e293b;
+        }
+
+        /* severity accents */
+        .toast-error {
+            border-left-color: #dc3545;
+        }
+
+        .toast-error .toast-icon {
+            background: #dc3545;
+        }
+
+        .toast-success {
+            border-left-color: #28a745;
+        }
+
+        .toast-success .toast-icon {
+            background: #28a745;
+        }
+
+        .toast-info {
+            border-left-color: var(--accent);
+        }
+
+        .toast-info .toast-icon {
+            background: var(--accent);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .toast {
+                transition: none;
+                opacity: 1;
+                transform: none;
+            }
+        }
+
     </style>
 </head>
 <body>
