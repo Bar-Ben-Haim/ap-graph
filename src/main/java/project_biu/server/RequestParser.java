@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public final class RequestParser {
 
     private static Map<String, String> parseQueryParameters(String uri, int queryIndex) {
         if (queryIndex == -1) {
-            return Map.of();
+            return new HashMap<>();
         }
         return Arrays.stream(uri.substring(queryIndex + 1).split("&"))
                 .map(pair -> pair.split("=", 2))
