@@ -31,7 +31,7 @@ The graph must be a **DAG** — A graph with cycles is rejected.
 ### Build
 
 ```powershell
-mvn clean install
+mvn clean package -DskipTests
 ```
 
 This produces a shaded (fat) jar at `target/ap-graph-1.0-SNAPSHOT.jar`
