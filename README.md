@@ -19,6 +19,12 @@ update live as messages are published.
 
 The graph must be a **DAG** — A graph with cycles is rejected.
 
+## Live now
+
+> The project is now running on cloud **Railway**
+> with automatic commit to branch `main` (since having Dockerfile):
+> <https://ap-graph-production.up.railway.app/app/index.html>
+
 ## Requirements
 
 - **Java**: JDK 25 (`maven.compiler.source/target = 25`).
