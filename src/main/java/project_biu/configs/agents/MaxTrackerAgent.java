@@ -5,12 +5,7 @@ import project_biu.graph.*;
 /**
  * Tracks the running maximum of all numeric values seen on the input topic.
  * A new message is published only when the maximum is updated.
- * Non-numeric messages are ignored.
- *
- * <pre>
- * subs[0] = input topic
- * pubs[0] = current maximum output topic
- * </pre>
+ * <p> Non-numeric messages are ignored.
  */
 public class MaxTrackerAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;

@@ -4,12 +4,6 @@ import project_biu.graph.*;
 
 /**
  * Counts the total number of messages received on the input topic since creation or last reset.
- * The counter-value (as a double) is published on every received message, regardless of content.
- *
- * <pre>
- * subs[0] = trigger topic (any message increments the counter)
- * pubs[0] = count output topic
- * </pre>
  */
 public class CounterAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;

@@ -8,7 +8,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * Sanitizes untrusted input received from clients (uploaded file names and contents).
+ * A File Utilization class to help read and write files.
+ * <p>
+ * For saving files: <p>
+ * Sanitizes untrusted input received from clients. <p>
+ * Also provides a helper method to read the content of a file as a string. <p>
  */
 public final class FileUtils {
     private static final Pattern ILLEGAL_FILE_NAME_CHARS = Pattern.compile("[^A-Za-z0-9._-]");

@@ -2,6 +2,9 @@ package project_biu.server;
 
 import java.util.UUID;
 
+/**
+ * Utility class for parsing multipart/form-data bodies.
+ */
 public final class MultipartParser {
     private MultipartParser() {
     }
@@ -67,17 +70,17 @@ public final class MultipartParser {
         return true;
     }
 
-    private static class State {
-        String filename;
-        boolean inFilePart;
-        boolean pastPartHeaders;
-    }
-
     private static String extractFilename(String contentDisposition, String fileNameSuffix) {
         final int idx = contentDisposition.indexOf("filename=\"");
         if (idx == -1) return UUID.randomUUID() + fileNameSuffix;
         final int start = idx + 10;
         final int end = contentDisposition.indexOf("\"", start);
         return end != -1 ? contentDisposition.substring(start, end) : UUID.randomUUID() + fileNameSuffix;
+    }
+
+    private static class State {
+        String filename;
+        boolean inFilePart;
+        boolean pastPartHeaders;
     }
 }

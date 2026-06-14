@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Represents a node in the graph.
+ */
 public class Node {
     private String name;
     //Edges to the parent nodes

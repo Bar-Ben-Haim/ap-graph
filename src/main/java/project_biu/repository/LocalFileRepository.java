@@ -29,12 +29,12 @@ public class LocalFileRepository implements FileRepository {
 
     @Override
     public synchronized boolean exists(String fileName) {
-        return resolve(fileName).map(Files::exists).orElse(false);
+        return resolve(fileName).filter(Files::isRegularFile).map(Files::exists).orElse(false);
     }
 
     @Override
     public synchronized Optional<Path> location(String fileName) {
-        return resolve(fileName);
+        return resolve(fileName).filter(Files::isRegularFile);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class LocalFileRepository implements FileRepository {
 
     @Override
     public synchronized void delete(String fileName) throws IOException {
-        final Optional<Path> resolved = resolve(fileName);
+        final Optional<Path> resolved = resolve(fileName).filter(Files::isRegularFile);
         if (resolved.isPresent())
             Files.deleteIfExists(resolved.get());
     }
@@ -62,7 +62,12 @@ public class LocalFileRepository implements FileRepository {
     }
 
     /**
-     * Resolves a name against the base directory, rejecting anything that escapes it.
+     * Resolves the given file name to an absolute, normalized path within the base directory of the repository.
+     * If the resolved path is not within the base directory, returns an empty optional.
+     *
+     * @param fileName The name of the file to resolve.
+     * @return An {@code Optional} containing the resolved {@code Path} if it is within the base directory,
+     * or an empty {@code Optional} if it is not.
      */
     private Optional<Path> resolve(String fileName) {
         final Path resolved = baseDirectory.resolve(fileName).normalize();

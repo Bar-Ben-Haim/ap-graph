@@ -20,9 +20,7 @@ public class GenericConfig implements Config {
 
     @Override
     public void create() {
-        if (confFile == null) {
-            throw new ConfigException(ConfigError.EMPTY_CONFIG);
-        }
+        if (confFile == null) throw new ConfigException(ConfigError.EMPTY_CONFIG);
 
         final List<String> lines;
         try {
@@ -34,14 +32,12 @@ public class GenericConfig implements Config {
                     "Could not read the configuration file: " + confFile.getFileName(), e);
         }
 
-        if (lines.isEmpty()) {
-            throw new ConfigException(ConfigError.EMPTY_CONFIG);
-        }
-        if (lines.size() % LINES_PER_AGENT != 0) {
+        if (lines.isEmpty()) throw new ConfigException(ConfigError.EMPTY_CONFIG);
+
+        if (lines.size() % LINES_PER_AGENT != 0)
             throw new ConfigException(ConfigError.INVALID_FORMAT,
                     "Configuration must contain a multiple of " + LINES_PER_AGENT
                             + " lines (class, inputs, outputs per agent), but found " + lines.size() + ".");
-        }
 
         for (int i = 0; i < lines.size(); i += LINES_PER_AGENT) {
             final String className = lines.get(i).trim();
@@ -78,9 +74,8 @@ public class GenericConfig implements Config {
             throw new ConfigException(ConfigError.UNKNOWN_AGENT, "Unknown agent class: " + className, e);
         }
 
-        if (!Agent.class.isAssignableFrom(clazz)) {
+        if (!Agent.class.isAssignableFrom(clazz))
             throw new ConfigException(ConfigError.INVALID_AGENT, "Class " + className + " does not implement Agent.");
-        }
 
         final Constructor<?> constructor;
         try {

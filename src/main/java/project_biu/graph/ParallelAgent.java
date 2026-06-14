@@ -2,6 +2,9 @@ package project_biu.graph;
 
 import java.util.concurrent.*;
 
+/**
+ * An active decorator to an agent for processesing messages asynchronously.
+ */
 public class ParallelAgent implements Agent {
     private final Agent agent;
     private final BlockingQueue<MessageWrapper> messageQueue;

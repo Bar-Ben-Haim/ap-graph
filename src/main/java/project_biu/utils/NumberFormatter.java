@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * Formats numeric topic values for display
+ * Formats numeric values for display
  */
 public final class NumberFormatter {
     private NumberFormatter() {

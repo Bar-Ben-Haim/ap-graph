@@ -12,6 +12,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+/**
+ * Loads static HTML files from the specified directory.
+ * This will also serve the main index.html file returning the main page of this application.
+ */
 public class HtmlLoader implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(HtmlLoader.class);
     private final ResponseUtils responseUtils;

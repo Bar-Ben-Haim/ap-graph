@@ -5,6 +5,9 @@ import project_biu.graph.*;
 import java.io.Closeable;
 import java.util.*;
 
+/**
+ * Represents a directed graph of topics and agents.
+ */
 public class Graph extends ArrayList<Node> implements Closeable {
     private final Map<String, Node> topicNodes = new HashMap<>();
     private final Map<Agent, Node> agentNodes = new HashMap<>();

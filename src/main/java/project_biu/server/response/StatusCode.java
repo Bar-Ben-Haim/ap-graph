@@ -1,5 +1,8 @@
 package project_biu.server.response;
 
+/**
+ * Enum representing HTTP status codes with their reasons.
+ */
 public enum StatusCode {
     CONTINUE(100, "Continue"),
     SWITCHING_PROTOCOLS(101, "Switching Protocols"),

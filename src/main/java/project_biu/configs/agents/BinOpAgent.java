@@ -4,6 +4,9 @@ import project_biu.graph.*;
 
 import java.util.function.BinaryOperator;
 
+/**
+ * An agent that takes two inputs and produces a single output.
+ */
 public abstract class BinOpAgent implements Agent, MathematicalDescribable {
     private final String name;
     private final Topic firstTopic;

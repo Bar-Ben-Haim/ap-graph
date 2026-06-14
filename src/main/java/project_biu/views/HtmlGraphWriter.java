@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Generates HTML that visually represents the computational graph.
+ */
 public class HtmlGraphWriter {
     private static final Path GRAPH_HTML_PATH = Path.of("html_files/graph.html");
 
@@ -37,6 +40,12 @@ public class HtmlGraphWriter {
         }
     }
 
+    /**
+     * Builds the visuals for the nodes in the graph.
+     *
+     * @param graph The graph to build visuals for.
+     * @return The visuals for the nodes in the graph.
+     */
     private static String buildNodes(List<Node> graph) {
         final StringBuilder builder = new StringBuilder();
         graph.forEach(node -> {
@@ -47,6 +56,12 @@ public class HtmlGraphWriter {
         return builder.toString();
     }
 
+    /**
+     * Builds the visuals for the edges in the graph.
+     *
+     * @param graph The graph to build visuals for.
+     * @return The visuals for the edges in the graph.
+     */
     private static String buildEdges(List<Node> graph) {
         final StringBuilder builder = new StringBuilder();
         graph.forEach(node -> node.getOutEdges().forEach(edge -> builder

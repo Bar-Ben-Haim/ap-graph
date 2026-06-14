@@ -4,13 +4,7 @@ import project_biu.graph.*;
 
 /**
  * Computes a moving average of the input numeric values.
- *
- * <p>Non-numeric messages are silently ignored. The average is published after every accepted sample.
- *
- * <pre>
- * subs[0] = input topic
- * pubs[0] = moving average output topic
- * </pre>
+ * <p> Non-numeric messages are ignored.
  */
 public class MovingAverageAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;

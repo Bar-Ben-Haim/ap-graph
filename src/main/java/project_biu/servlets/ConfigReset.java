@@ -12,7 +12,7 @@ import java.io.OutputStream;
 
 /**
  * Rebuilds the deployed graph from its saved configuration, clearing all topic
- * values and agent state.
+ * values and agents current states.
  */
 public class ConfigReset implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigReset.class);

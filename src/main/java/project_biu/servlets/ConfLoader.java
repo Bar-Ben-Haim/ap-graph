@@ -16,6 +16,10 @@ import project_biu.views.HtmlGraphWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Loads and deploys a configuration from a multipart request with a .conf file.
+ * This will create the computational graph.
+ */
 public class ConfLoader implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfLoader.class);
     private static final String CONFIG_FILE_SUFFIX = ".conf";

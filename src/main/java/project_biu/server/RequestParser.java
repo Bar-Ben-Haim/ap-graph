@@ -13,12 +13,29 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * A utility class for parsing HTTP request data from a BufferedReader into a structured format.
+ * This class is designed to handle the parsing of request lines, headers, query params,
+ * and the body.
+ * <p>
+ * The class provides a method to parse a full request and returns a {@link RequestInfo} object
+ * containing the details of the parsed request.
+ * <p>
+ */
 public final class RequestParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestParser.class);
 
     private RequestParser() {
     }
 
+    /**
+     * Parses a full HTTP request from a BufferedReader and returns a RequestInfo object containing all the details
+     * about the request.
+     *
+     * @param reader the BufferedReader to read the request from
+     * @return a RequestInfo object containing the details of the parsed request, or null if the request is not valid
+     * @throws IOException if an I/O error occurs while reading the request
+     */
     public static RequestInfo parseRequest(BufferedReader reader) throws IOException {
         final String requestLine = reader.readLine();
         if (requestLine == null || requestLine.isEmpty()) {
@@ -42,6 +59,13 @@ public final class RequestParser {
         return new RequestInfo(httpCommand, uri, uriSegments, parameters, content);
     }
 
+    /**
+     * Parses the query parameters from the given URI starting at the specified query index.
+     *
+     * @param uri        The full URI containing the query string.
+     * @param queryIndex The index in the URI where the query string begins (e.g., the index of '?').
+     * @return Map containing the query parameters as key-value pairs.
+     */
     private static Map<String, String> parseQueryParameters(String uri, int queryIndex) {
         if (queryIndex == -1) {
             return new HashMap<>();
@@ -53,6 +77,12 @@ public final class RequestParser {
                         kv -> kv.length > 1 ? decode(kv[1]) : "", (existing, _) -> existing));
     }
 
+    /**
+     * Skips the headers of the request.
+     *
+     * @param reader the BufferedReader to read the headers from
+     * @throws IOException if an I/O error occurs while reading the headers
+     */
     private static void skipHeaders(BufferedReader reader) throws IOException {
         String headerLine;
         //noinspection StatementWithEmptyBody
@@ -61,6 +91,14 @@ public final class RequestParser {
         }
     }
 
+    /**
+     * Parses the body of an HTTP request from the provided BufferedReader and returns it as a byte array.
+     *
+     * @param reader     The BufferedReader from which the body of the request is read.
+     * @param parameters Map to store metadata extracted from the body, with key-value pairs.
+     * @return Byte array containing the parsed content of the body.
+     * @throws IOException If an I/O error occurs while reading the body.
+     */
     private static byte[] parseBody(BufferedReader reader, Map<String, String> parameters) throws IOException {
         final StringBuilder contentBuilder = new StringBuilder();
         final BodyParseState state = new BodyParseState();
@@ -87,6 +125,15 @@ public final class RequestParser {
         }
     }
 
+    /**
+     * Processes a line of content from body's request
+     *
+     * @param line           The current line from the HTTP request body being processed.
+     * @param parameters     A map to store key-value pairs extracted as metadata from the content.
+     * @param contentBuilder A StringBuilder to store the parsed body content.
+     * @param state          Indicates the current state of the body parsing, including whether
+     *                       metadata is still being parsed and whether the body is multipart.
+     */
     private static void handleContentLine(String line,
                                           Map<String, String> parameters,
                                           StringBuilder contentBuilder,

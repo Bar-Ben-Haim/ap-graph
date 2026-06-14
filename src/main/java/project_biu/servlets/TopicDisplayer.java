@@ -13,6 +13,16 @@ import project_biu.utils.ReplaceUntrustedChars;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * TopicDisplayer is an implementation of the Servlet interface, responsible for handling requests
+ * related to the display and management of topics and their associated messages.
+ * <p>
+ * This class serves the logic for: <p>
+ * - Validating requests for topic existence. <p>
+ * - Publishing new messages to topics. <p>
+ * - Generating and returning an HTML response displaying the list of topics along with the latest message values. <p>
+ * - Injecting styles and scripts for client-side functionality.
+ */
 public class TopicDisplayer implements Servlet {
     private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
     private final ResponseUtils responseUtils;

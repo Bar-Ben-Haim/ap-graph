@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * A utility class for generating HTTP responses.
+ */
 public class ResponseUtils {
     private final ObjectMapper objectMapper;
 
@@ -37,10 +40,10 @@ public class ResponseUtils {
         response(out, StatusCode.NOT_FOUND, MediaType.APPLICATION_JSON, message);
     }
 
-    public void response(OutputStream out,
-                         StatusCode statusCode,
-                         MediaType mediaType,
-                         Object body) throws IOException {
+    private void response(OutputStream out,
+                          StatusCode statusCode,
+                          MediaType mediaType,
+                          Object body) throws IOException {
         final StringBuilder response = new StringBuilder();
 
         final byte[] bodyBytes = switch (body) {

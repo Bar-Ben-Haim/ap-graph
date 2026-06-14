@@ -14,6 +14,9 @@ import project_biu.views.HtmlGraphWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Handles the request to display the current graph.
+ */
 public class GraphDisplayer implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphDisplayer.class);
     private final ResponseUtils responseUtils;

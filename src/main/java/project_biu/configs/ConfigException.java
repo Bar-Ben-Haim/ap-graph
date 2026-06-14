@@ -2,7 +2,7 @@ package project_biu.configs;
 
 /**
  * Thrown when a configuration cannot be loaded, validated, or turned into a graph.
- * Carries a {@link ConfigError} so callers can render the appropriate error page.
+ * Carries a {@link ConfigError}.
  */
 public class ConfigException extends RuntimeException {
     private final transient ConfigError error;

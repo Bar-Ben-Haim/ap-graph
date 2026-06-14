@@ -11,6 +11,10 @@ import project_biu.utils.FileUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Service class responsible for managing and operating the graph data structure.
+ * Provides functionalities for building, resetting, and deleting graph configurations.
+ */
 public class GraphService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphService.class);
     private static final TopicManagerSingleton.TopicManager TOPIC_MANAGER = TopicManagerSingleton.get();
@@ -57,7 +61,7 @@ public class GraphService {
     }
 
     /**
-     * Tears down the graph and removes <em>every</em> stored configuration file.
+     * Tears down the graph and removes every stored configuration file.
      */
     public synchronized void deleteAll() {
         try {
@@ -84,6 +88,11 @@ public class GraphService {
         }
     }
 
+    /**
+     * Builds the graph from the active configuration.
+     *
+     * @return The built graph.
+     */
     private Graph build() {
         releaseGraph();
 
@@ -106,13 +115,9 @@ public class GraphService {
         return graph;
     }
 
-    private void closeConfig() {
+    private synchronized void releaseGraph() {
         if (config != null) config.close();
         config = null;
-    }
-
-    private synchronized void releaseGraph() {
-        closeConfig();
         TOPIC_MANAGER.clear();
         graphRepository.delete();
     }

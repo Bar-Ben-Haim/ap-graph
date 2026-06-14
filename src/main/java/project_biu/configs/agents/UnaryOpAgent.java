@@ -4,6 +4,9 @@ import project_biu.graph.*;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * An agent that takes a single input and produces a single output.
+ */
 public abstract class UnaryOpAgent implements Agent, MathematicalDescribable {
     private final String name;
     private final Topic inputTopic;
