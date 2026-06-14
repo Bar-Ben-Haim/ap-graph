@@ -42,8 +42,7 @@ public class GraphService {
             throw new ConfigException(ConfigError.FILE_ERROR, "Could not save the configuration: " + e.getMessage(), e);
         }
 
-        activeConfigName = safeName;
-        return build();
+        return build(safeName);
     }
 
     /**
@@ -53,7 +52,7 @@ public class GraphService {
         if (activeConfigName == null || !fileRepository.exists(activeConfigName)) {
             throw new ConfigException(ConfigError.NOT_LOADED);
         }
-        return build();
+        return build(activeConfigName);
     }
 
     public synchronized Graph get() {
@@ -91,26 +90,29 @@ public class GraphService {
     /**
      * Builds the graph from the active configuration.
      *
+     * @param newConfigName The new configuration file to build from.
      * @return The built graph.
      */
-    private Graph build() {
-        releaseGraph();
-
-        final Path configPath = fileRepository.location(activeConfigName)
+    private Graph build(String newConfigName) {
+        final Path configPath = fileRepository.location(newConfigName)
                 .orElseThrow(() -> new ConfigException(ConfigError.FILE_ERROR,
-                        "Configuration file is not accessible: " + activeConfigName));
+                        "Configuration file is not accessible: " + newConfigName));
 
         final GenericConfig genericConfig = new GenericConfig();
         genericConfig.setConfFile(configPath);
         genericConfig.create();
-        config = genericConfig;
 
         final Graph graph = new Graph();
         graph.createFromTopics();
         if (graph.hasCycles()) {
-            deleteActiveConfig();
+            graph.close();
+            genericConfig.close();
             throw new ConfigException(ConfigError.CYCLES_DETECTED);
         }
+
+        releaseGraph(); // release previous graph only if no fails were thrown
+        config = genericConfig;
+        activeConfigName = newConfigName;
         graphRepository.save(graph);
         return graph;
     }
