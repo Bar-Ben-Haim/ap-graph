@@ -129,6 +129,8 @@ ap-graph/
   rendered by a severity-styled error page.
 - **Input hardening** — uploaded file names are sanitized, and script/markup content is
   rejected; uploaded configs are stored in an app-owned directory (never the system temp dir).
+- **Logging** writing to the console as well as to the file with rolling policy. Used `slf4j` interfaces
+  with `log4j2` implementation (see `resources/log4j2.xml`).
 
 ## Architecture
 
