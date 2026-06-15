@@ -41,6 +41,7 @@ public class ConfLoader implements Servlet {
             responseUtils.okHtml(toClient, String.join("\n",
                     HtmlGraphWriter.getGraphHTML(graph, graph.getGraphFormulas())));
         } catch (ConfigException e) {
+            graphService.deleteActiveConfig();
             LOGGER.info("Configuration rejected ({}): {}", e.getError(), e.getMessage());
             responseUtils.badRequestHtml(toClient, HtmlErrorWriter.getErrorHtml(e.getError(), e.getMessage()));
         } catch (RuntimeException e) {

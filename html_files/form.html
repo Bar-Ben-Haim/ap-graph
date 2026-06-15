@@ -145,6 +145,7 @@
         setTimeout(() => {
             graphEl.src = '/graph?t=' + Date.now();
             graphEl.removeAttribute('srcdoc');
+            refreshTable();   // active graph is deleted on error — sync the table too
         }, 3000);
     }
 </script>

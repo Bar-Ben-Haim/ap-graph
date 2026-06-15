@@ -28,9 +28,11 @@ public class ConfigReset implements Servlet {
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
         try {
+            //noinspection resource
             graphService.reset();
             responseUtils.ok(toClient);
         } catch (ConfigException e) {
+            graphService.deleteActiveConfig();
             LOGGER.error("Reset skipped with error", e);
             responseUtils.badRequestHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
         } catch (RuntimeException e) {
