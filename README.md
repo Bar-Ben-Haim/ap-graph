@@ -92,15 +92,16 @@ ap-graph/
 │   ├── configs/                  # Config, GenericConfig, Graph, Node, ConfigError, ConfigException
 │   │   └── agents/               # All the Agents impls
 │   ├── graph/                    # Message, Topic, Agent, MathematicalDescribable, ParallelAgent, TopicManagerSingleton
-│   ├── repository/               # GraphRepository + FileRepository
+│   ├── repository/               # GraphRepository + FilesRepository (+ Local* impls)
 │   ├── service/                  # GraphService
 │   ├── server/                   # HTTPServer, MyHTTPServer, RequestParser, MultipartParser
 │   │   └── response/             # ResponseUtils, StatusCode, MediaType
 │   ├── servlets/                 # Servlets
 │   ├── utils/                    # FileUtils, NumberFormatter, ReplaceUntrustedChars
 │   └── views/                    # HtmlGraphWriter (Graph → HTML), HtmlErrorWriter (error page)
+├── src/main/resources/           # log4j2.xml (logging config)
 ├── src/test/java/test/           # Unit tests
-├── config_files/                 # Example .conf files (simple1/simple2/not-simple/empty/conf-with-cycles)
+├── config_files/                 # Example .conf files (simple1/simple2/not-simple/empty/conf-with-cycles/invalid)
 ├── html_files/                   # Static web assets
 ├── uploaded_configs/             # Runtime store for uploaded configs
 ├── Dockerfile
@@ -142,7 +143,7 @@ Browser ──HTTP──▶ MyHTTPServer ──▶ Servlet (controller layer)
    POST /upload ─ ConfLoader ────────┤
    POST /reset  ─ ConfigReset ───────┼──▶ GraphService (service layer)
    DELETE /delete ─ ConfigDelete ────┤        ├──▶ GraphRepository      (in-memory active Graph)
-                                     │        ├──▶ FileRepository        (persisted .conf files)
+                                     │        ├──▶ FilesRepository       (persisted .conf files)
                                      │        └──▶ GenericConfig ──▶ Agents + Topics (model)
    GET /publish ─ TopicDisplayer ────┼──▶ TopicManagerSingleton.publish(...)
    GET /graph   ─ GraphDisplayer ────┼──▶ HtmlGraphWriter (view: Graph → HTML)
@@ -152,7 +153,7 @@ Browser ──HTTP──▶ MyHTTPServer ──▶ Servlet (controller layer)
 - **Model** (`graph`, `configs`): `Message`, `Topic`, `Agent`, `MathematicalDescribable`,
   `TopicManagerSingleton`, `ParallelAgent`, `Node`, `Graph`, agent implementations.
 - **Repository** (`repository`): `GraphRepository`/`LocalGraphRepository` (the active graph)
-  and `FileRepository`/`LocalFileRepository` (uploaded configs by name).
+  and `FilesRepository`/`LocalFilesRepository` (uploaded configs by name).
 - **Service** (`service`): `GraphService` owns the deploy/reset/delete lifecycle and is the
   single funnel where uploads are validated and sanitized.
 - **Controller** (`server`, `servlets`): the HTTP server, request parsing (`RequestParser`),
@@ -167,7 +168,7 @@ Browser ──HTTP──▶ MyHTTPServer ──▶ Servlet (controller layer)
 | `GET`    | `/app/<file>`                    | `HtmlLoader`     | Serve a static file from `html_files/` (e.g. `index.html`).                               |
 | `POST`   | `/upload`                        | `ConfLoader`     | Upload a `.conf` (multipart); deploy it; return the graph HTML (or a typed error page).   |
 | `GET`    | `/graph`                         | `GraphDisplayer` | Render the current graph, or a "no graph deployed" page.                                  |
-| `GET`    | `/publish?topic=<t>&message=<m>` | `TopicDisplayer` | Publish a message to a topic; return the topic-values table.                              |
+| `GET`    | `/publish?topic=<t>&message=<m>` | `TopicDisplayer` | Publish a message to a topic; return the topic-values table (`404` if the topic doesn't exist). |
 | `POST`   | `/reset`                         | `ConfigReset`    | Rebuild the active graph from its saved config (clears all topic values and agent state). |
 | `DELETE` | `/delete`                        | `ConfigDelete`   | Remove the configuration and graph entirely (back to "nothing deployed").                 |
 
@@ -177,7 +178,8 @@ Open <http://localhost:8080/app/index.html>. The page is a responsive 3-pane she
 (`iframe`s) that stacks vertically on narrow windows:
 
 - **Left — Controls** (`form.html`): deploy a `.conf` (button **deploy** → `POST /upload`),
-  publish a message to a topic (→ `GET /publish`), and **Graph Control** buttons
+  publish a message to a topic (→ `GET /publish`; publishing to an unknown topic returns
+  `404` and the page shows a toast), and **Graph Control** buttons
   **Reset** (`POST /reset`) and **Delete** (`DELETE /delete`).
 - **Center — Graph** (`graph.html`): the live `vis-network` visualization. Topics are
   boxes (with their current value), agents are circles labelled with their formula; arrows
@@ -228,6 +230,10 @@ chain into `E = (A + B) * (A - B)`. The bundled
 [`config_files/simple1.conf`](config_files/simple1.conf) shows multi-producer derivation
 (two agents publish to the same topic), and
 [`config_files/not-simple.conf`](config_files/not-simple.conf) chains all six agent types.
+The error-demo configs trigger typed errors:
+[`conf-with-cycles.conf`](config_files/conf-with-cycles.conf) (`CYCLES_DETECTED`),
+[`invalid.conf`](config_files/invalid.conf) (`UNKNOWN_AGENT`), and
+[`empty.conf`](config_files/empty.conf) (`EMPTY_CONFIG`).
 
 ## Agents
 
