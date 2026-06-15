@@ -52,6 +52,7 @@ public class GraphService {
         if (activeConfigName == null || !filesRepository.exists(activeConfigName)) {
             throw new ConfigException(ConfigError.NOT_LOADED);
         }
+        releaseGraph();
         return build(activeConfigName);
     }
 
