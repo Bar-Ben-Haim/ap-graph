@@ -2,10 +2,7 @@ package project_biu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import project_biu.repository.FileRepository;
-import project_biu.repository.GraphRepository;
-import project_biu.repository.LocalFileRepository;
-import project_biu.repository.LocalGraphRepository;
+import project_biu.repository.*;
 import project_biu.server.HTTPServer;
 import project_biu.server.MyHTTPServer;
 import project_biu.server.response.ResponseUtils;
@@ -23,9 +20,9 @@ public class Main {
         final HTTPServer server = new MyHTTPServer(8080, 5);
         final ResponseUtils responseUtils = new ResponseUtils();
         final GraphRepository graphRepository = new LocalGraphRepository();
-        final FileRepository fileRepository = new LocalFileRepository(Path.of("uploaded_configs"));
-        final GraphService graphService = new GraphService(graphRepository, fileRepository);
-        fileRepository.deleteAll();
+        final FilesRepository filesRepository = new LocalFilesRepository(Path.of("uploaded_configs"));
+        final GraphService graphService = new GraphService(graphRepository, filesRepository);
+        filesRepository.deleteAll();
 
         server.addServlet("GET", "/publish", new TopicDisplayer(responseUtils, graphService));
         server.addServlet("GET", "/graph", new GraphDisplayer(responseUtils, graphService));

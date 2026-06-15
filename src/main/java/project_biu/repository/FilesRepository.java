@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * A file Repository to manage files, keyed by the file name.
  */
-public interface FileRepository {
+public interface FilesRepository {
     /**
      * Saves the provided content into a file with the given name.
      *

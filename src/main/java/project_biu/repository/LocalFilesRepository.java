@@ -11,10 +11,10 @@ import java.util.stream.Stream;
  * Stores files inside a single application-owned directory. The directory is created
  * on construction and is the sole location used for managing files.
  */
-public class LocalFileRepository implements FileRepository {
+public class LocalFilesRepository implements FilesRepository {
     private final Path baseDirectory;
 
-    public LocalFileRepository(Path baseDirectory) throws IOException {
+    public LocalFilesRepository(Path baseDirectory) throws IOException {
         this.baseDirectory = baseDirectory.toAbsolutePath().normalize();
         Files.createDirectories(this.baseDirectory);
     }
@@ -50,8 +50,7 @@ public class LocalFileRepository implements FileRepository {
     @Override
     public synchronized void delete(String fileName) throws IOException {
         final Optional<Path> resolved = resolve(fileName).filter(Files::isRegularFile);
-        if (resolved.isPresent())
-            Files.deleteIfExists(resolved.get());
+        if (resolved.isPresent()) Files.deleteIfExists(resolved.get());
     }
 
     @Override
