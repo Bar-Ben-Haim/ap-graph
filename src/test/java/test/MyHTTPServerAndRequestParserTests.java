@@ -184,7 +184,7 @@ class MyHTTPServerAndRequestParserTests {
         final String boundary = "----WebKitFormBoundaryABC123";
         final String fileContent = "project_biu.configs.agents.PlusAgent\nA,B\nC\nproject_biu.configs.agents.IncAgent\nC\nD";
         final String body = boundary + "\r\n"
-                + "Content-Disposition: form-data; name=\"file\"; filename=\"simple.conf\"\r\n"
+                + "Content-Disposition: form-data; name=\"file\"; filename=\"simple1.conf\"\r\n"
                 + "Content-Type: application/octet-stream\r\n"
                 + "\r\n"
                 + fileContent + "\r\n"

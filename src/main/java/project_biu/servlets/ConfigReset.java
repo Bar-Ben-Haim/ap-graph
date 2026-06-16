@@ -4,15 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import project_biu.configs.ConfigException;
 import project_biu.server.RequestParser;
-import project_biu.server.reponse.ResponseUtils;
+import project_biu.server.response.ResponseUtils;
 import project_biu.service.GraphService;
+import project_biu.views.HtmlErrorWriter;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
  * Rebuilds the deployed graph from its saved configuration, clearing all topic
- * values and agent state.
+ * values and agents current states.
  */
 public class ConfigReset implements Servlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigReset.class);
@@ -27,11 +28,17 @@ public class ConfigReset implements Servlet {
     @Override
     public void handle(RequestParser.RequestInfo ri, OutputStream toClient) throws IOException {
         try {
+            //noinspection resource
             graphService.reset();
+            responseUtils.ok(toClient);
         } catch (ConfigException e) {
-            LOGGER.info("Reset skipped ({}): {}", e.getError(), e.getMessage());
+            graphService.deleteActiveConfig();
+            LOGGER.error("Reset skipped with error", e);
+            responseUtils.badRequestHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
+        } catch (RuntimeException e) {
+            LOGGER.error("Unexpected error resetting config", e);
+            responseUtils.internalServerErrorHtml(toClient, HtmlErrorWriter.createErrorHtml(e));
         }
-        responseUtils.ok(toClient);
     }
 
     @Override

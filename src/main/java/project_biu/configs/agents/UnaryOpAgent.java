@@ -1,22 +1,22 @@
 package project_biu.configs.agents;
 
-import project_biu.graph.Agent;
-import project_biu.graph.Message;
-import project_biu.graph.Topic;
-import project_biu.graph.TopicManagerSingleton;
+import project_biu.graph.*;
 
 import java.util.function.UnaryOperator;
 
-public class UnaryOpAgent implements Agent {
+/**
+ * An agent that takes a single input and produces a single output.
+ */
+public abstract class UnaryOpAgent implements Agent, MathematicalDescribable {
     private final String name;
     private final Topic inputTopic;
     private final Topic outputTopic;
     private final UnaryOperator<Double> operator;
 
-    public UnaryOpAgent(String name,
-                        String inputTopicName,
-                        String outputTopicName,
-                        UnaryOperator<Double> operator) {
+    protected UnaryOpAgent(String name,
+                           String inputTopicName,
+                           String outputTopicName,
+                           UnaryOperator<Double> operator) {
         final TopicManagerSingleton.TopicManager tm = TopicManagerSingleton.get();
         this.name = name;
         this.inputTopic = tm.getTopic(inputTopicName);
@@ -47,5 +47,10 @@ public class UnaryOpAgent implements Agent {
     public void close() {
         inputTopic.unsubscribe(this);
         outputTopic.removePublisher(this);
+    }
+
+    @Override
+    public String getMathRepresentation() {
+        return String.format("%s = %s", outputTopic.name(), getMathPattern(inputTopic.name()));
     }
 }

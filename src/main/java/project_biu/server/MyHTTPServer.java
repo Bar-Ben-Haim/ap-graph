@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -21,6 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
+/**
+ * A simple HTTP server implmeantion that runs in a separate thread.
+ */
 public class MyHTTPServer extends Thread implements HTTPServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyHTTPServer.class);
     private final int port;
@@ -39,8 +43,8 @@ public class MyHTTPServer extends Thread implements HTTPServer {
     }
 
     @Override
-    public void addServlet(String httpCommand, String uri, Servlet s) {
-        findServletsMap(httpCommand).ifPresent(map -> map.put(uri, s));
+    public void addServlet(String httpCommand, String uri, Servlet servlet) {
+        findServletsMap(httpCommand).ifPresent(map -> map.put(uri, servlet));
     }
 
     @Override
@@ -54,21 +58,37 @@ public class MyHTTPServer extends Thread implements HTTPServer {
             server.setSoTimeout(1000);
 
             while (!stop) {
-                try {
-                    final Socket socket = server.accept();
-                    executorService.submit(() -> handleClient(socket));
-                } catch (SocketTimeoutException _) {
-                    // Expected every 1 second
-                } catch (IOException e) {
-                    if (!stop)
-                        LOGGER.error("Error accepting client connection", e);
-                }
+                handleServerRequest(server);
             }
         } catch (IOException e) {
             LOGGER.error("Error while running the server socket", e);
+            System.exit(1);
         }
     }
 
+    /**
+     * Handles a single client request.
+     *
+     * @param server The server socket to accept client connections from.
+     */
+    private void handleServerRequest(ServerSocket server) {
+        try {
+            final Socket socket = server.accept();
+            socket.setSoTimeout(3000);
+            executorService.submit(() -> handleClient(socket));
+        } catch (SocketTimeoutException _) {
+            // Expected every 1 second
+        } catch (BindException e) {
+            if (!stop) LOGGER.error("Error accepting client connection", e);
+            System.exit(1);
+        } catch (IOException e) {
+            if (!stop) LOGGER.error("Error accepting client connection", e);
+        }
+    }
+
+    /**
+     * Closes the server and the {@code Servlets}.
+     */
     @Override
     public void close() {
         stop = true;
@@ -85,6 +105,13 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 });
     }
 
+    /**
+     * Handles a single client connection by reading the request, parsing it, and delegating
+     * the request to the best matching servlet.
+     *
+     * @param client The client socket associated with the incoming connection. The method
+     *               uses this socket to read the request input and send a response output.
+     */
     private void handleClient(Socket client) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
              OutputStream out = client.getOutputStream()) {
@@ -123,6 +150,12 @@ public class MyHTTPServer extends Thread implements HTTPServer {
                 .map(servletMap::get);
     }
 
+    /**
+     * Finds the relevant map of servlets for the given HTTP command by the {@code httpCommand}.
+     *
+     * @param httpCommand The HTTP command (e.g., GET, POST, DELETE)
+     * @return The relevant map of servlets for the given HTTP command, or empty map.
+     */
     private Optional<Map<String, Servlet>> findServletsMap(String httpCommand) {
         return switch (httpCommand) {
             case "GET" -> Optional.of(getServlets);

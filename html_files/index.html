@@ -109,18 +109,31 @@
             min-height: 0;
         }
 
-        .left-panel   { flex: 1 1 0; min-width: 240px; }
-        .center-panel { flex: 2.4 1 0; min-width: 320px; }
-        .right-panel  { flex: 1.2 1 0; min-width: 260px; }
+        .left-panel {
+            flex: 1 1 0;
+            min-width: 240px;
+        }
+
+        .center-panel {
+            flex: 2.4 1 0;
+            min-width: 320px;
+        }
+
+        .right-panel {
+            flex: 1.2 1 0;
+            min-width: 260px;
+        }
 
         /* ---- Responsive: stack vertically on narrow / short windows ---- */
         @media (max-width: 900px) {
             body {
                 overflow: auto;
             }
+
             .container {
                 flex-direction: column;
             }
+
             .left-panel,
             .center-panel,
             .right-panel {
@@ -128,14 +141,28 @@
                 width: 100%;
                 min-width: 0;
             }
-            .left-panel   { min-height: 220px; }
-            .center-panel { min-height: 420px; }
-            .right-panel  { min-height: 260px; }
+
+            .left-panel {
+                min-height: 220px;
+            }
+
+            .center-panel {
+                min-height: 420px;
+            }
+
+            .right-panel {
+                min-height: 260px;
+            }
         }
 
         @media (max-width: 480px) {
-            header .subtitle { display: none; }
-            :root { --gap: 8px; }
+            header .subtitle {
+                display: none;
+            }
+
+            :root {
+                --gap: 8px;
+            }
         }
 
         /* ---- Toast notifications ---- */
@@ -152,70 +179,101 @@
         }
 
         .toast {
-            pointer-events: auto;
+            pointer-events: auto; /* container is none; re-enable so the close button works */
             display: flex;
             align-items: flex-start;
             gap: 10px;
             padding: 12px 14px;
+            background: var(--surface);
+            color: #1e293b;
             border-radius: 8px;
-            border-left: 4px solid currentColor;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+            border-left: 4px solid var(--muted);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
             font-size: 14px;
-            line-height: 1.45;
+            line-height: 1.4;
             opacity: 0;
-            transform: translateX(16px);
-            transition: opacity 200ms ease-out, transform 200ms ease-out;
+            transform: translateX(12px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
         }
 
-        .toast.toast-visible {
+        .toast-visible {
             opacity: 1;
             transform: translateX(0);
         }
 
-        .toast.toast-leaving {
+        .toast-leaving {
             opacity: 0;
-            transform: translateX(16px);
-            transition: opacity 140ms ease-in, transform 140ms ease-in;
+            transform: translateX(12px);
         }
 
         .toast-icon {
             flex: 0 0 auto;
-            font-size: 16px;
-            line-height: 1.4;
+            width: 20px;
+            height: 20px;
+            margin-top: 1px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            background: var(--muted);
         }
 
         .toast-message {
             flex: 1 1 auto;
+            word-break: break-word;
         }
 
         .toast-close {
             flex: 0 0 auto;
-            padding: 0 4px;
             background: none;
             border: none;
-            color: inherit;
+            color: var(--muted);
             font-size: 18px;
-            font-weight: 700;
             line-height: 1;
             cursor: pointer;
-            opacity: 0.6;
+            padding: 0 2px;
         }
 
         .toast-close:hover {
-            opacity: 1;
+            color: #1e293b;
         }
 
-        .toast-error   { background: #f8d7da; color: #842029; }
-        .toast-info    { background: #e9f0ff; color: #3b5bdb; }
-        .toast-success { background: #d1e7dd; color: #0f5132; }
+        /* severity accents */
+        .toast-error {
+            border-left-color: #dc3545;
+        }
+
+        .toast-error .toast-icon {
+            background: #dc3545;
+        }
+
+        .toast-success {
+            border-left-color: #28a745;
+        }
+
+        .toast-success .toast-icon {
+            background: #28a745;
+        }
+
+        .toast-info {
+            border-left-color: var(--accent);
+        }
+
+        .toast-info .toast-icon {
+            background: var(--accent);
+        }
 
         @media (prefers-reduced-motion: reduce) {
-            .toast,
-            .toast.toast-leaving {
+            .toast {
                 transition: none;
+                opacity: 1;
                 transform: none;
             }
         }
+
     </style>
 </head>
 <body>
@@ -252,9 +310,7 @@
         const ICONS = {error: '✕', info: 'ℹ', success: '✓'};
         const AUTO_DISMISS_MS = 4000;
 
-        // Show a transient popup notification. Callable cross-frame as
-        // window.parent.showToast(...) from the control iframe.
-        window.showToast = function (message, severity) {
+        globalThis.showToast = function (message, severity) {
             const type = ICONS[severity] ? severity : 'error';
             const container = document.getElementById('toastContainer');
             if (!container) return;
@@ -293,7 +349,7 @@
                 toast.classList.remove('toast-visible');
                 toast.classList.add('toast-leaving');
                 toast.addEventListener('transitionend', () => toast.remove(), {once: true});
-                // Fallback if transitionend never fires (e.g. reduced motion).
+                // Fallback if transitionend never fires (e.g., reduced motion).
                 setTimeout(() => toast.remove(), 250);
             }
 

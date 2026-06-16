@@ -7,6 +7,12 @@
     <title>Forms</title>
 
     <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -24,6 +30,10 @@
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card label {
+            display: block;
         }
 
         input,
@@ -85,24 +95,58 @@
 <div class="card">
     <h2>Deploy Configuration</h2>
 
-    <form id="deployForm" action="http://localhost:8080/upload" method="post"
-          enctype="multipart/form-data" target="graphFrame"
-          onsubmit="return validateConfFile()">
+    <form id="deployForm" onsubmit="return deployConfig(event)">
         <input type="file" id="configFile" name="file" accept=".conf" required>
         <button type="submit">deploy</button>
     </form>
 </div>
 
 <script>
-    function validateConfFile() {
+    function deployConfig(e) {
+        e.preventDefault();
         const fileInput = document.getElementById('configFile');
         if (!fileInput.files.length) return false;
-        const fileName = fileInput.files[0].name;
-        if (!fileName.endsWith('.conf')) {
-            alert('Invalid file type. Please select a .conf file.');
+        if (!fileInput.files[0].name.endsWith('.conf')) {
+            notify('Invalid file type. Please select a .conf file.', 'error');
             return false;
         }
-        return true;
+
+        fetch('/upload', {method: 'POST', body: new FormData(e.target)})
+            // grab status and body together so we can branch on the status code
+            .then(res => res.text().then(body => ({ok: res.ok, body})))
+            .then(({ok, body}) => {
+                if (ok) {
+                    refreshTable();
+                } else {
+                    showUploadError(body);
+                }
+            })
+            .catch(() => notify('Deploy failed — is the server running?', 'error'));
+
+        return false;
+    }
+
+    // Refresh ONLY the topic-values table, without touching the graph frame.
+    function refreshTable() {
+        const top = window.parent;
+        if (top && top.frames['tableFrame']) {
+            top.frames['tableFrame'].location.href = '/publish?t=' + Date.now();
+        }
+    }
+
+    // Paint the server's error page into the center frame for 3s, then reload /graph.
+    function showUploadError(html) {
+        const top = window.parent;
+        const graphEl = top && top.document.querySelector('iframe[name="graphFrame"]');
+        if (!graphEl) return;
+
+        graphEl.srcdoc = html;
+
+        setTimeout(() => {
+            graphEl.src = '/graph?t=' + Date.now();
+            graphEl.removeAttribute('srcdoc');
+            refreshTable();   // active graph is deleted on error — sync the table too
+        }, 3000);
     }
 </script>
 

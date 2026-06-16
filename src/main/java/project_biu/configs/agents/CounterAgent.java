@@ -1,20 +1,11 @@
 package project_biu.configs.agents;
 
-import project_biu.graph.Agent;
-import project_biu.graph.Message;
-import project_biu.graph.Topic;
-import project_biu.graph.TopicManagerSingleton;
+import project_biu.graph.*;
 
 /**
  * Counts the total number of messages received on the input topic since creation or last reset.
- * The counter-value (as a double) is published on every received message, regardless of content.
- *
- * <pre>
- * subs[0] = trigger topic (any message increments the counter)
- * pubs[0] = count output topic
- * </pre>
  */
-public class CounterAgent implements Agent {
+public class CounterAgent implements Agent, MathematicalDescribable {
     private final Topic inputTopic;
     private final Topic outputTopic;
     private int count = 0;
@@ -47,5 +38,17 @@ public class CounterAgent implements Agent {
     public void close() {
         inputTopic.unsubscribe(this);
         outputTopic.removePublisher(this);
+    }
+
+    @Override
+    public String getMathPattern(String... inputs) {
+        if (inputs.length == 1)
+            return "COUNT(" + inputs[0] + ")";
+        return getName();
+    }
+
+    @Override
+    public String getMathRepresentation() {
+        return String.format("%s = %s", outputTopic.name(), getMathPattern(inputTopic.name()));
     }
 }

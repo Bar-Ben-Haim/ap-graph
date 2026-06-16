@@ -2,6 +2,10 @@ package project_biu.graph;
 
 import java.util.Date;
 
+/**
+ * Represents a message sent between agents.
+ * Saves the message data as a byte array and provides convenience getter to the data as different types.
+ */
 public class Message {
     public final byte[] data;
     public final String asText;

@@ -8,6 +8,12 @@ public final class ReplaceUntrustedChars {
     private ReplaceUntrustedChars() {
     }
 
+    /**
+     * Escapes special characters in a given text to prevent HTML injection.
+     *
+     * @param text The input text to be sanitized; if null, an empty string is returned.
+     * @return A sanitized string with special characters replaced by their HTML entity equivalents.
+     */
     public static String html(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;")
@@ -17,6 +23,12 @@ public final class ReplaceUntrustedChars {
                 .replace("'", "&#39;");
     }
 
+    /**
+     * Escapes special characters in a given text to prevent JavaScript injection.
+     *
+     * @param text The input text to be sanitized; if null, an empty string is returned.
+     * @return A sanitized string with special characters replaced by their escaped equivalents for safe JavaScript.
+     */
     public static String js(String text) {
         if (text == null) return "";
         return text.replace("\\", "\\\\")
