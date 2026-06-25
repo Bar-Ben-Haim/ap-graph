@@ -11,10 +11,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Tests the concrete {@link BinOpAgent} subclasses: the arithmetic each one wires
- * into the base and the math pattern each one renders.
- */
 class BinOpAgentSubclassesTest {
     private TopicManagerSingleton.TopicManager tm;
 

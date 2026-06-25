@@ -13,12 +13,6 @@ import java.util.function.BinaryOperator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Tests the abstract {@link BinOpAgent} base class through a local test subclass,
- * independent of the concrete Plus/Minus/Mul agents. Covers the logic that lives
- * in the base itself: operator application, two-input gating, math representation,
- * reset and close.
- */
 class BinOpAgentTest {
     private TopicManagerSingleton.TopicManager tm;
 
