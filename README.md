@@ -80,8 +80,7 @@ Try to create your own server and servlets with the libraries and interfaces
 of this project.
 
 ## Demo
-
-> TODO: add demo video
+![Demo Video](/docs/ap-graph-final.mp4)
 
 ## Project Structure
 
