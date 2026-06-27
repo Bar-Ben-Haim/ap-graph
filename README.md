@@ -80,7 +80,7 @@ Try to create your own server and servlets with the libraries and interfaces
 of this project.
 
 ## Demo
-![Demo Video](/docs/ap-graph-final.mp4)
+[ap-graph-final.mp4](docs/ap-graph-final.mp4)
 
 ## Project Structure
 
