@@ -82,7 +82,7 @@ of this project.
 
 ## Demo
 
-<video src="https://github.com/Bar-Ben-Haim/ap-graph/raw/main/docs/ap-graph-final.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/547478e0-5b12-48b9-9d19-8531cd27f5b7" controls></video>
 
 ## Project Structure
 
