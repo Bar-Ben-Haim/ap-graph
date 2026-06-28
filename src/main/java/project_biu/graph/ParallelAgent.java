@@ -29,6 +29,12 @@ public class ParallelAgent implements Agent {
         agent.reset();
     }
 
+    /**
+     * Adds a message to the queue to be processed asynchronously by the original agent.
+     *
+     * @param topic the topic that triggered the msg
+     * @param msg   the msg sent in that topic
+     */
     @Override
     public void callback(String topic, Message msg) {
         try {
@@ -45,6 +51,12 @@ public class ParallelAgent implements Agent {
         agent.close();
     }
 
+    /**
+     * Processes messages asynchronously by the original agent.
+     *
+     * @param agent the agent to process messages for
+     * @return a future representing the asynchronous processing task
+     */
     private Future<?> processMessagesAsync(Agent agent) {
         return executorService.submit(() -> {
             try {

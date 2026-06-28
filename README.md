@@ -74,14 +74,15 @@ docker run -p 8080:8080 ap-graph
 
 ## Javadocs & API
 
-This project is documented with [Javadocs](http://localhost:63342/ap-graph/javadoc/index.html),
-you can use the link to view and learn about the API of this project.<p>
+This project is documented with [Javadocs](./javadoc/index.html) — open
+`javadoc/index.html` from a local clone of the repo to view and learn about the API
+of this project.<p>
 Try to create your own server and servlets with the libraries and interfaces
 of this project.
 
 ## Demo
 
-> TODO: add demo video
+<video src="https://github.com/Bar-Ben-Haim/ap-graph/raw/main/docs/ap-graph-final.mp4" controls></video>
 
 ## Project Structure
 
@@ -163,14 +164,14 @@ Browser ──HTTP──▶ MyHTTPServer ──▶ Servlet (controller layer)
 
 ## HTTP API
 
-| Method   | Path                             | Servlet          | Purpose                                                                                   |
-|----------|----------------------------------|------------------|-------------------------------------------------------------------------------------------|
-| `GET`    | `/app/<file>`                    | `HtmlLoader`     | Serve a static file from `html_files/` (e.g. `index.html`).                               |
-| `POST`   | `/upload`                        | `ConfLoader`     | Upload a `.conf` (multipart); deploy it; return the graph HTML (or a typed error page).   |
-| `GET`    | `/graph`                         | `GraphDisplayer` | Render the current graph, or a "no graph deployed" page.                                  |
+| Method   | Path                             | Servlet          | Purpose                                                                                         |
+|----------|----------------------------------|------------------|-------------------------------------------------------------------------------------------------|
+| `GET`    | `/app/<file>`                    | `HtmlLoader`     | Serve a static file from `html_files/` (e.g. `index.html`).                                     |
+| `POST`   | `/upload`                        | `ConfLoader`     | Upload a `.conf` (multipart); deploy it; return the graph HTML (or a typed error page).         |
+| `GET`    | `/graph`                         | `GraphDisplayer` | Render the current graph, or a "no graph deployed" page.                                        |
 | `GET`    | `/publish?topic=<t>&message=<m>` | `TopicDisplayer` | Publish a message to a topic; return the topic-values table (`404` if the topic doesn't exist). |
-| `POST`   | `/reset`                         | `ConfigReset`    | Rebuild the active graph from its saved config (clears all topic values and agent state). |
-| `DELETE` | `/delete`                        | `ConfigDelete`   | Remove the configuration and graph entirely (back to "nothing deployed").                 |
+| `POST`   | `/reset`                         | `ConfigReset`    | Rebuild the active graph from its saved config (clears all topic values and agent state).       |
+| `DELETE` | `/delete`                        | `ConfigDelete`   | Remove the configuration and graph entirely (back to "nothing deployed").                       |
 
 ## Web Interface
 
