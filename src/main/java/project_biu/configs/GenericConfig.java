@@ -71,6 +71,14 @@ public class GenericConfig implements Config {
         this.confFile = confFile;
     }
 
+    /**
+     * Instantiates an agent using reflection by the given {@code className}, {@code subs} and {@code pubs}.
+     *
+     * @param className the class name of the agent to instantiate
+     * @param subs      the topics to subscribe to in the agent ctor
+     * @param pubs      the topics to publish in the agent ctor
+     * @return the created agent
+     */
     private Agent instantiateAgent(String className, String[] subs, String[] pubs) {
         final Class<?> clazz;
         try {

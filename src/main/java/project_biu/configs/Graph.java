@@ -14,6 +14,9 @@ public class Graph extends ArrayList<Node> implements Closeable {
     private final List<Agent> nodeUpdaters = new ArrayList<>();
     private final List<String> graphFormulas = new ArrayList<>();
 
+    /**
+     * Creates a graph from the topics in the {@link TopicManagerSingleton}.
+     */
     public void createFromTopics() {
         close();
         final Collection<Topic> topics = TopicManagerSingleton.get().getTopics();
@@ -30,6 +33,11 @@ public class Graph extends ArrayList<Node> implements Closeable {
         addAll(agentNodes.values());
     }
 
+    /**
+     * Check if the graph has cycles.
+     *
+     * @return true if the graph has cycles, false otherwise.
+     */
     public boolean hasCycles() {
         return this.stream().anyMatch(Node::hasCycles);
     }
@@ -62,6 +70,11 @@ public class Graph extends ArrayList<Node> implements Closeable {
         return Objects.hash(super.hashCode(), topicNodes, agentNodes, nodeUpdaters);
     }
 
+    /**
+     * Maps a topic and it's agents to nodes in the graph.
+     *
+     * @param topic the topic to create nodes for.
+     */
     private void mapTopicToNode(Topic topic) {
         topicNodes.computeIfAbsent(topic.name(), name -> {
             final Node topicNode = new Node("T" + name);
@@ -78,6 +91,12 @@ public class Graph extends ArrayList<Node> implements Closeable {
         });
     }
 
+    /**
+     * Maps an agent to a node in the graph.
+     *
+     * @param agent the agent to map to a node.
+     * @return the node representing the agent.
+     */
     private Node mapAgentToNode(Agent agent) {
         return agentNodes.computeIfAbsent(agent, newAgent -> {
             if (newAgent instanceof MathematicalDescribable mathematicalDescribable)
@@ -86,6 +105,9 @@ public class Graph extends ArrayList<Node> implements Closeable {
         });
     }
 
+    /**
+     * Finds all mathematical formulas associated with the graph.
+     */
     private void findGraphFormulas() {
         topicNodes.values().stream()
                 .filter(Node::isRoot)
