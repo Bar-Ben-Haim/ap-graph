@@ -80,7 +80,9 @@ Try to create your own server and servlets with the libraries and interfaces
 of this project.
 
 ## Demo
-[ap-graph-final.mp4](docs/ap-graph-final.mp4)
+<video src="./docs/ap-graph-final.mp4" controls width="640" height="360">
+  Your browser does not support the video tag.
+</video>
 
 ## Project Structure
 
